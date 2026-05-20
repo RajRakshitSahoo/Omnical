@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>OmniCalc Pro — Ultimate Calculator Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Exo+2:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;width:100%;overflow:hidden;background:#020409;color:#e2e8f0;font-family:'Exo 2',sans-serif;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:rgba(255,255,255,.03)}::-webkit-scrollbar-thumb{background:rgba(180,41,249,.4);border-radius:2px}
+select option{background:#0a1628;color:#e2e8f0}
+input[type=date],input[type=datetime-local]{color-scheme:dark}
+input[type=range]{-webkit-appearance:none;background:transparent;width:100%}
+input[type=range]::-webkit-slider-track{background:rgba(41,121,255,.2);border-radius:4px;height:4px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,#b429f9,#2979ff);cursor:pointer;margin-top:-6px;box-shadow:0 0 8px rgba(180,41,249,.5)}
+
+#app{display:flex;height:100vh;width:100vw;overflow:hidden;position:relative}
+.bg-grid{position:fixed;inset:0;background-image:linear-gradient(rgba(41,121,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(41,121,255,.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.bg-glow1{position:fixed;top:0;left:25%;width:384px;height:384px;border-radius:50%;background:radial-gradient(circle,#b429f9,transparent);filter:blur(80px);opacity:.05;pointer-events:none;z-index:0}
+.bg-glow2{position:fixed;bottom:0;right:25%;width:384px;height:384px;border-radius:50%;background:radial-gradient(circle,#2979ff,transparent);filter:blur(80px);opacity:.05;pointer-events:none;z-index:0}
+
+/* SIDEBAR */
+#sidebar{position:relative;display:flex;flex-direction:column;height:100%;background:rgba(6,13,26,.85);backdrop-filter:blur(24px);border-right:1px solid rgba(255,255,255,.05);z-index:20;transition:width .3s cubic-bezier(.4,0,.2,1);width:220px;min-width:220px;flex-shrink:0;overflow:hidden}
+#sidebar.collapsed{width:64px;min-width:64px}
+.logo-area{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0}
+.logo-icon{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#b429f9,#2979ff);box-shadow:0 0 16px rgba(180,41,249,.5);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Orbitron';font-size:14px;font-weight:900;color:#fff}
+.logo-text{overflow:hidden;white-space:nowrap;transition:opacity .2s}
+.logo-text h1{font-family:'Orbitron';font-size:0.75rem;font-weight:700;color:#fff;letter-spacing:.05em}
+.logo-text span{font-size:.6rem;color:rgba(168,196,255,.4);font-weight:600;letter-spacing:.1em}
+#sidebar.collapsed .logo-text{opacity:0;pointer-events:none}
+.search-wrap{padding:8px 12px;flex-shrink:0;transition:opacity .2s}
+#sidebar.collapsed .search-wrap{opacity:0;pointer-events:none;height:0;padding:0}
+.search-input{width:100%;padding:6px 10px 6px 28px;background:rgba(41,121,255,.07);border:1px solid rgba(41,121,255,.15);color:#a8c4ff;border-radius:8px;font-size:.75rem;outline:none;font-family:'Exo 2';position:relative}
+.search-wrap .si{position:relative}
+.search-wrap .si::before{content:'⌕';position:absolute;left:8px;top:50%;transform:translateY(-50%);color:rgba(168,196,255,.4);font-size:14px;pointer-events:none;z-index:1}
+.nav-list{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 0}
+.section-label{font-family:'Orbitron';font-size:.6rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:rgba(168,196,255,.3);padding:8px 12px 4px;white-space:nowrap;overflow:hidden;transition:opacity .2s}
+#sidebar.collapsed .section-label{opacity:0;height:0;padding:0}
+.nav-sep{height:1px;background:rgba(41,121,255,.08);margin:4px 8px;transition:opacity .2s}
+#sidebar.collapsed .nav-sep{opacity:1}
+.nav-item{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:12px;cursor:pointer;transition:all .2s;color:rgba(168,196,255,.55);border:1px solid transparent;font-size:.8rem;font-weight:500;margin:1px 8px;white-space:nowrap;overflow:hidden}
+.nav-item:hover{color:rgba(168,196,255,.9);background:rgba(41,121,255,.08);border-color:rgba(41,121,255,.15)}
+.nav-item.active{color:#fff;border-color:var(--item-color,rgba(180,41,249,.4));background:rgba(180,41,249,.12);box-shadow:0 0 12px rgba(180,41,249,.08)}
+.nav-item .icon{width:16px;height:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px}
+.nav-item .label{overflow:hidden;text-overflow:ellipsis;transition:opacity .2s;flex:1}
+#sidebar.collapsed .nav-item .label{opacity:0;width:0;overflow:hidden}
+#sidebar.collapsed .nav-item{padding:8px;justify-content:center;margin:1px 6px}
+.collapse-btn{flex-shrink:0;padding:8px;border-top:1px solid rgba(255,255,255,.05)}
+.collapse-btn button{width:100%;height:32px;border-radius:12px;background:rgba(41,121,255,.07);border:1px solid rgba(41,121,255,.12);color:rgba(168,196,255,.5);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:16px}
+.collapse-btn button:hover{background:rgba(41,121,255,.18);color:#fff}
+
+/* MAIN */
+#main{display:flex;flex-direction:column;flex:1;min-width:0;position:relative;z-index:10}
+
+/* TOPBAR */
+#topbar{display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid rgba(255,255,255,.05);background:rgba(6,13,26,.8);backdrop-filter:blur(20px);flex-shrink:0}
+.mode-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.mode-info{flex:1}
+.mode-info h2{font-family:'Orbitron';font-size:.75rem;font-weight:700;color:#fff;letter-spacing:.05em}
+.mode-info span{font-size:.6rem;color:rgba(168,196,255,.35)}
+.top-actions{display:flex;gap:6px}
+.top-btn{width:32px;height:32px;border-radius:12px;background:rgba(41,121,255,.08);border:1px solid rgba(41,121,255,.15);color:rgba(168,196,255,.6);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-size:15px;position:relative}
+.top-btn:hover{background:rgba(41,121,255,.18);color:#fff;border-color:rgba(41,121,255,.4)}
+.hist-badge{position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,#b429f9,#2979ff);font-size:.55rem;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center}
+
+/* CONTENT */
+#content{flex:1;overflow:auto;position:relative}
+.panel{position:absolute;inset:0;display:flex;flex-direction:column;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* GLASS CARD */
+.glass{background:rgba(10,22,40,.7);backdrop-filter:blur(20px);border:1px solid rgba(180,41,249,.12)}
+.glass-card{background:rgba(10,22,40,.7);backdrop-filter:blur(20px);border:1px solid rgba(180,41,249,.12);border-radius:20px;padding:20px}
+
+/* BUTTONS */
+.btn{display:flex;align-items:center;justify-content:center;border-radius:12px;font-family:'JetBrains Mono';font-size:.85rem;font-weight:500;cursor:pointer;transition:all .15s;border:1px solid transparent;background:rgba(15,32,64,.8);border-color:rgba(41,121,255,.2);color:#a8c4ff;user-select:none}
+.btn:hover{background:rgba(41,121,255,.15);border-color:rgba(41,121,255,.5);color:#fff;box-shadow:0 0 12px rgba(41,121,255,.3);transform:translateY(-1px)}
+.btn:active{transform:scale(.94) translateY(0);box-shadow:none}
+.btn-op{background:rgba(180,41,249,.12);border-color:rgba(180,41,249,.3);color:#d580ff}
+.btn-op:hover{background:rgba(180,41,249,.25);border-color:rgba(180,41,249,.6);color:#fff;box-shadow:0 0 15px rgba(180,41,249,.35)}
+.btn-eq{background:linear-gradient(135deg,rgba(180,41,249,.6),rgba(41,121,255,.6));border-color:rgba(180,41,249,.5);color:#fff;font-weight:700}
+.btn-eq:hover{background:linear-gradient(135deg,rgba(180,41,249,.85),rgba(41,121,255,.85));box-shadow:0 0 20px rgba(180,41,249,.5),0 0 40px rgba(41,121,255,.3);transform:translateY(-2px)}
+.btn-del{background:rgba(245,0,87,.12);border-color:rgba(245,0,87,.3);color:#ff6090}
+.btn-del:hover{background:rgba(245,0,87,.25);border-color:rgba(245,0,87,.6);box-shadow:0 0 12px rgba(245,0,87,.3)}
+.btn-sci{background:rgba(0,229,255,.08);border-color:rgba(0,229,255,.2);color:#66ffff;font-size:.7rem}
+.btn-sci:hover{background:rgba(0,229,255,.2);border-color:rgba(0,229,255,.5);color:#fff;box-shadow:0 0 12px rgba(0,229,255,.3)}
+.btn-act{background:rgba(0,230,118,.12);border-color:rgba(0,230,118,.3);color:#66ffaa}
+.btn-act:hover{background:rgba(0,230,118,.25);border-color:rgba(0,230,118,.6);box-shadow:0 0 12px rgba(0,230,118,.3)}
+
+/* DISPLAY */
+.display{background:rgba(2,4,9,.8);border:1px solid rgba(41,121,255,.2);box-shadow:inset 0 2px 20px rgba(0,0,0,.5),0 0 20px rgba(41,121,255,.05);border-radius:16px;padding:14px 16px;font-family:'JetBrains Mono';margin-bottom:10px}
+.disp-expr{color:rgba(168,196,255,.35);font-size:.75rem;min-height:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px}
+.disp-val{color:#fff;font-size:2rem;font-weight:300;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 0 20px rgba(168,196,255,.3);line-height:1.2}
+.disp-val.sm{font-size:1.4rem}
+
+/* INPUTS */
+.inp{background:rgba(6,13,26,.8);border:1px solid rgba(41,121,255,.2);color:#e2e8f0;border-radius:12px;padding:9px 14px;font-family:'JetBrains Mono';font-size:.875rem;transition:all .2s;outline:none;width:100%}
+.inp:focus{border-color:rgba(180,41,249,.5);box-shadow:0 0 12px rgba(180,41,249,.15)}
+.sel{background:rgba(6,13,26,.8);border:1px solid rgba(41,121,255,.2);color:#e2e8f0;border-radius:12px;padding:9px 30px 9px 14px;font-size:.875rem;transition:all .2s;outline:none;cursor:pointer;width:100%;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%23a8c4ff' d='M5 7L1 3h8z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.sel:focus{border-color:rgba(180,41,249,.5);box-shadow:0 0 12px rgba(180,41,249,.15)}
+.lbl{font-size:.72rem;color:rgba(168,196,255,.55);margin-bottom:5px;display:block}
+.result-box{background:linear-gradient(135deg,rgba(180,41,249,.12),rgba(41,121,255,.12));border:1px solid rgba(180,41,249,.25);border-radius:14px;padding:14px 18px;font-family:'JetBrains Mono';box-shadow:0 0 20px rgba(180,41,249,.08)}
+.tag{border-radius:6px;padding:2px 8px;font-size:.65rem;font-weight:600}
+.tag-p{background:rgba(180,41,249,.15);border:1px solid rgba(180,41,249,.3);color:#d580ff}
+.tag-b{background:rgba(41,121,255,.15);border:1px solid rgba(41,121,255,.3);color:#82aaff}
+.tag-c{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);color:#66ffff}
+.tag-g{background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.25);color:#66ffaa}
+
+/* HISTORY PANEL */
+#hist-panel{position:fixed;inset:0;z-index:50;display:flex;align-items:stretch;justify-content:flex-end;background:rgba(2,4,9,.65);backdrop-filter:blur(4px)}
+#hist-panel .inner{width:360px;max-width:90vw;background:rgba(6,13,26,.95);backdrop-filter:blur(24px);border-left:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;animation:slideIn .3s cubic-bezier(.4,0,.2,1)}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes slideOut{from{transform:translateX(0)}to{transform:translateX(100%)}}
+.hist-item{background:rgba(41,121,255,.05);border:1px solid rgba(41,121,255,.1);border-radius:12px;padding:10px 12px;position:relative;transition:all .2s}
+.hist-item:hover{background:rgba(41,121,255,.1);border-color:rgba(41,121,255,.2)}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:100;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:rgba(10,22,40,.95);border:1px solid rgba(180,41,249,.3);color:#e2e8f0;font-family:'Exo 2';font-size:.85rem;padding:10px 16px;border-radius:12px;backdrop-filter:blur(20px);pointer-events:all;animation:toastIn .3s ease;display:flex;align-items:center;gap:8px;max-width:300px}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.toast.success .t-icon{color:#00e676}
+.toast.error .t-icon{color:#f50057}
+.toast.info .t-icon{color:#2979ff}
+
+/* GRID HELPERS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+.center{display:flex;align-items:center;justify-content:center}
+.between{display:flex;align-items:center;justify-content:space-between}
+.flex-gap{display:flex;align-items:center;gap:8px}
+.space-y>*+*{margin-top:10px}
+.scroll{overflow-y:auto}
+
+/* GRAPH CONTAINER */
+#graph-container{flex:1;min-height:280px;position:relative;overflow:hidden;border-radius:16px}
+canvas.graph-canvas{width:100%;height:100%;display:block}
+
+/* CONVERTER SWAP BTN */
+.swap-btn{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid;transition:all .2s;flex-shrink:0;font-size:16px}
+
+/* BIT DISPLAY */
+.bit{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-family:'JetBrains Mono';font-weight:700;cursor:pointer;transition:all .15s;border:1px solid}
+.bit.on{background:rgba(180,41,249,.3);border-color:rgba(180,41,249,.5);color:#fff;box-shadow:0 0 6px rgba(180,41,249,.3)}
+.bit.off{background:rgba(6,13,26,.5);border-color:rgba(41,121,255,.1);color:rgba(168,196,255,.25)}
+
+.h-sep{height:1px;background:rgba(41,121,255,.1);margin:8px 0}
+.panel-inner{height:100%;overflow-y:auto;padding:16px}
+.max-w-sm{max-width:420px}
+.max-w-md{max-width:520px}
+.mx-auto{margin-left:auto;margin-right:auto}
+
+@media(max-width:640px){
+  #sidebar{width:64px!important;min-width:64px!important}
+  #sidebar .label{opacity:0!important;width:0!important}
+  #sidebar .section-label{opacity:0!important;height:0!important;padding:0!important}
+  .disp-val{font-size:1.5rem}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bg-grid"></div>
+  <div class="bg-glow1"></div>
+  <div class="bg-glow2"></div>
+  <div id="sidebar">
+    <div class="logo-area">
+      <div class="logo-icon">Ω</div>
+      <div class="logo-text"><h1>OmniCalc</h1><span>PRO</span></div>
+    </div>
+    <div class="search-wrap">
+      <div class="si"><input class="search-input" id="nav-search" placeholder="Search tools..." oninput="filterNav(this.value)"/></div>
+    </div>
+    <div class="nav-list" id="nav-list"></div>
+    <div class="collapse-btn"><button id="collapse-btn" onclick="toggleSidebar()" title="Toggle sidebar">◀</button></div>
+  </div>
+  <div id="main">
+    <div id="topbar">
+      <div class="mode-icon" id="top-mode-icon"></div>
+      <div class="mode-info"><h2 id="top-mode-title">Standard</h2><span id="top-mode-sub">Calculator Mode</span></div>
+      <div class="top-actions">
+        <button class="top-btn" onclick="showHistory()" title="History" id="hist-btn">🕐<span class="hist-badge" id="hist-badge" style="display:none">0</span></button>
+        <button class="top-btn" onclick="exportPDF()" title="Export PDF">📥</button>
+        <button class="top-btn" onclick="toggleFullscreen()" title="Fullscreen" id="fs-btn">⛶</button>
+      </div>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+<div class="toast-wrap" id="toasts"></div>
+<div id="hist-overlay" style="display:none" onclick="hideHistory()">
+  <div id="hist-panel" style="display:none">
+    <div class="inner">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.05)">
+        <span style="font-family:Orbitron;font-size:.8rem;font-weight:700;color:#fff;letter-spacing:.05em">HISTORY</span>
+        <div style="display:flex;gap:8px">
+          <button onclick="clearHistory()" style="font-size:.75rem;padding:4px 10px;border-radius:8px;border:1px solid rgba(245,0,87,.2);background:transparent;color:#ff6090;cursor:pointer" id="clr-hist-btn">Clear All</button>
+          <button onclick="hideHistory()" style="width:28px;height:28px;border-radius:8px;border:1px solid rgba(41,121,255,.15);background:transparent;color:rgba(168,196,255,.5);cursor:pointer;font-size:14px">✕</button>
+        </div>
+      </div>
+      <div id="hist-list" class="scroll" style="flex:1;padding:12px;display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  activeMode: localStorage.getItem('oc_mode') || 'standard',
+  sidebarCollapsed: localStorage.getItem('oc_sb') === '1',
+  history: JSON.parse(localStorage.getItem('oc_hist') || '[]'),
+};
+
+function saveState() {
+  localStorage.setItem('oc_mode', state.activeMode);
+  localStorage.setItem('oc_sb', state.sidebarCollapsed ? '1' : '0');
+  localStorage.setItem('oc_hist', JSON.stringify(state.history.slice(0, 200)));
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function toast(msg, type='success') {
+  const icons = {success:'✓', error:'✕', info:'ℹ'};
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span class="t-icon">${icons[type]||'✓'}</span><span>${msg}</span>`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => { el.style.opacity='0'; el.style.transform='translateX(20px)'; el.style.transition='all .3s'; setTimeout(()=>el.remove(),300); }, 2500);
+}
+
+function copyText(t) { navigator.clipboard.writeText(t).then(()=>toast('Copied!')); }
+
+// ============================================================
+// HISTORY
+// ============================================================
+function addHistory(mode, expression, result) {
+  state.history.unshift({ id: Date.now(), mode, expression, result, time: new Date().toLocaleTimeString() });
+  saveState();
+  updateHistBadge();
+}
+
+function updateHistBadge() {
+  const badge = document.getElementById('hist-badge');
+  if (!badge) return;
+  if (state.history.length > 0) { badge.style.display='flex'; badge.textContent = state.history.length > 99 ? '99+' : state.history.length; }
+  else badge.style.display='none';
+}
+
+function showHistory() {
+  const overlay = document.getElementById('hist-overlay');
+  const panel = document.getElementById('hist-panel');
+  overlay.style.display='flex';
+  panel.style.display='flex';
+  renderHistList();
+}
+function hideHistory() {
+  document.getElementById('hist-overlay').style.display='none';
+  document.getElementById('hist-panel').style.display='none';
+}
+
+function renderHistList() {
+  const el = document.getElementById('hist-list');
+  if (!state.history.length) {
+    el.innerHTML = '<div style="text-align:center;padding:48px;color:rgba(168,196,255,.25);font-size:.9rem">🕐<br><br>No history yet</div>';
+    return;
+  }
+  el.innerHTML = state.history.map((h,i) => `
+    <div class="hist-item">
+      <div style="display:flex;justify-content:space-between;align-items:start;gap:8px">
+        <div style="flex:1;min-width:0">
+          <div style="color:rgba(168,196,255,.4);font-size:.72rem;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.expression||''}</div>
+          <div style="color:#fff;font-family:'JetBrains Mono';font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.result||''}</div>
+          <div style="color:rgba(168,196,255,.25);font-size:.65rem;margin-top:3px">${h.time||''}</div>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          <button onclick="copyText('${(h.result||'').replace(/'/g,"\\'")}');toast('Copied!')" style="width:24px;height:24px;border-radius:6px;background:transparent;border:1px solid rgba(41,121,255,.15);cursor:pointer;font-size:11px;color:rgba(168,196,255,.4)">⎘</button>
+          <button onclick="removeHistory(${h.id})" style="width:24px;height:24px;border-radius:6px;background:transparent;border:1px solid rgba(245,0,87,.15);cursor:pointer;font-size:11px;color:rgba(255,96,144,.4)">✕</button>
+        </div>
+      </div>
+      ${h.mode ? `<span class="tag tag-b" style="margin-top:5px;display:inline-block">${h.mode}</span>` : ''}
+    </div>
+  `).join('');
+}
+
+function removeHistory(id) {
+  state.history = state.history.filter(h => h.id !== id);
+  saveState(); updateHistBadge(); renderHistList();
+}
+function clearHistory() {
+  state.history = []; saveState(); updateHistBadge(); renderHistList();
+}
+
+// ============================================================
+// PDF EXPORT
+// ============================================================
+function exportPDF() {
+  if (!state.history.length) { toast('No history to export', 'error'); return; }
+  let content = 'OmniCalc Pro — History Export\n';
+  content += `Generated: ${new Date().toLocaleString()}\n\n`;
+  state.history.slice(0,100).forEach(h => {
+    content += `[${h.mode}] ${h.expression} = ${h.result}\n`;
+  });
+  const blob = new Blob([content], {type:'text/plain'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='omnicalc-history.txt'; a.click();
+  toast('History exported!');
+}
+
+// ============================================================
+// FULLSCREEN
+// ============================================================
+function toggleFullscreen() {
+  if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); document.getElementById('fs-btn').textContent='⛶'; }
+  else { document.exitFullscreen(); document.getElementById('fs-btn').textContent='⛶'; }
+}
+
+// ============================================================
+// SIDEBAR / NAV
+// ============================================================
+const MODES = [
+  // Calculators
+  {id:'standard',  label:'Standard',        icon:'🔢', color:'#2979ff', section:'calc'},
+  {id:'scientific',label:'Scientific',       icon:'🔬', color:'#00e5ff', section:'calc'},
+  {id:'graphing',  label:'Graphing',         icon:'📈', color:'#b429f9', section:'calc'},
+  {id:'programmer',label:'Programmer',       icon:'💻', color:'#00e676', section:'calc'},
+  {id:'date',      label:'Date & Age',       icon:'📅', color:'#ff9800', section:'calc'},
+  {id:'bmi',       label:'BMI',              icon:'❤️', color:'#f50057', section:'calc'},
+  {id:'gpa',       label:'GPA / CGPA',       icon:'🎓', color:'#ff6d00', section:'calc'},
+  {id:'emi',       label:'EMI Loan',         icon:'💰', color:'#00e676', section:'calc'},
+  {id:'sip',       label:'SIP Investment',   icon:'📊', color:'#2979ff', section:'calc'},
+  {id:'percentage',label:'Percentage',       icon:'%',  color:'#00e5ff', section:'calc'},
+  {id:'equation',  label:'Equation Solver',  icon:'🧮', color:'#b429f9', section:'calc'},
+  {id:'matrix',    label:'Matrix',           icon:'⊞',  color:'#00e676', section:'calc'},
+  {id:'statistics',label:'Statistics',       icon:'📉', color:'#ff9800', section:'calc'},
+  {id:'tax',       label:'Tax & Discount',   icon:'🏷️', color:'#f50057', section:'calc'},
+  {id:'unitprice', label:'Unit Price',       icon:'🛒', color:'#2979ff', section:'calc'},
+  // Converters
+  {id:'currency',  label:'Currency',         icon:'💱', color:'#00e676', section:'conv'},
+  {id:'length',    label:'Length',           icon:'📏', color:'#2979ff', section:'conv'},
+  {id:'weight',    label:'Weight & Mass',    icon:'⚖️', color:'#b429f9', section:'conv'},
+  {id:'temperature',label:'Temperature',    icon:'🌡️', color:'#f50057', section:'conv'},
+  {id:'area',      label:'Area',             icon:'⬛', color:'#ff9800', section:'conv'},
+  {id:'volume',    label:'Volume',           icon:'🧪', color:'#00e5ff', section:'conv'},
+  {id:'speed',     label:'Speed',            icon:'💨', color:'#00e676', section:'conv'},
+  {id:'time',      label:'Time',             icon:'⏱️', color:'#2979ff', section:'conv'},
+  {id:'energy',    label:'Energy',           icon:'⚡', color:'#ff9800', section:'conv'},
+  {id:'power',     label:'Power',            icon:'🔋', color:'#b429f9', section:'conv'},
+  {id:'data',      label:'Data Storage',     icon:'💾', color:'#00e5ff', section:'conv'},
+  {id:'pressure',  label:'Pressure',         icon:'🌀', color:'#f50057', section:'conv'},
+  {id:'angle',     label:'Angle',            icon:'📐', color:'#00e676', section:'conv'},
+  {id:'color',     label:'Color',            icon:'🎨', color:'#ff9800', section:'conv'},
+  {id:'base',      label:'Number Base',      icon:'🔟', color:'#2979ff', section:'conv'},
+  {id:'roman',     label:'Roman Numerals',   icon:'Ⅻ',  color:'#b429f9', section:'conv'},
+  {id:'internet',  label:'Internet Speed',   icon:'📡', color:'#00e676', section:'conv'},
+  {id:'resolution',label:'Screen Resolution',icon:'🖥️', color:'#00e5ff', section:'conv'},
+  {id:'timezone',  label:'Time Zone',        icon:'🌍', color:'#ff9800', section:'conv'},
+];
+
+function buildNav(filter='') {
+  const list = document.getElementById('nav-list');
+  const calcs = MODES.filter(m => m.section==='calc' && (!filter || m.label.toLowerCase().includes(filter.toLowerCase())));
+  const convs = MODES.filter(m => m.section==='conv' && (!filter || m.label.toLowerCase().includes(filter.toLowerCase())));
+  let html = '';
+  if (calcs.length) {
+    html += '<div class="section-label">Calculators</div>';
+    calcs.forEach(m => { html += navItem(m); });
+  }
+  if (convs.length) {
+    html += `<div class="${calcs.length?'nav-sep':''}"></div><div class="section-label">Converters</div>`;
+    convs.forEach(m => { html += navItem(m); });
+  }
+  list.innerHTML = html + '<div style="height:16px"></div>';
+  // Bind clicks
+  list.querySelectorAll('.nav-item').forEach(el => {
+    el.addEventListener('click', () => setMode(el.dataset.id));
+  });
+  // Highlight active
+  list.querySelectorAll('.nav-item').forEach(el => {
+    if (el.dataset.id === state.activeMode) { el.classList.add('active'); el.style.setProperty('--item-color', el.dataset.color+'66'); }
+  });
+}
+
+function navItem(m) {
+  return `<div class="nav-item${m.id===state.activeMode?' active':''}" data-id="${m.id}" data-color="${m.color}" style="${m.id===state.activeMode?`--item-color:${m.color}40;background:${m.color}14;border-color:${m.color}40`:''}" title="${m.label}">
+    <span class="icon" style="${m.id===state.activeMode?`color:${m.color};filter:drop-shadow(0 0 4px ${m.color}80)`:''}">${m.icon}</span>
+    <span class="label">${m.label}</span>
+  </div>`;
+}
+
+function filterNav(val) { buildNav(val); }
+
+function toggleSidebar() {
+  state.sidebarCollapsed = !state.sidebarCollapsed;
+  saveState();
+  document.getElementById('sidebar').classList.toggle('collapsed', state.sidebarCollapsed);
+  document.getElementById('collapse-btn').textContent = state.sidebarCollapsed ? '▶' : '◀';
+}
+
+function setMode(id) {
+  state.activeMode = id;
+  saveState();
+  buildNav();
+  updateTopBar();
+  renderContent();
+}
+
+function updateTopBar() {
+  const m = MODES.find(x => x.id===state.activeMode);
+  if (!m) return;
+  document.getElementById('top-mode-icon').textContent = m.icon;
+  document.getElementById('top-mode-icon').style.cssText = `background:${m.color}18;border:1px solid ${m.color}30;border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px`;
+  document.getElementById('top-mode-title').textContent = m.label;
+  document.getElementById('top-mode-sub').textContent = m.section==='conv' ? 'Converter Mode' : 'Calculator Mode';
+}
+
+// ============================================================
+// MATH UTILS
+// ============================================================
+function safeEval(expr) {
+  // Safe math expression evaluator
+  try {
+    const sanitized = expr
+      .replace(/[^0-9+\-*/().%^e,sincotalog!sqrt πabcdfhijkmqruvwxyz]/gi, '')
+      .replace(/\^/g,'**')
+      .replace(/π/g, String(Math.PI))
+      .replace(/sin\(/g,'Math.sin(')
+      .replace(/cos\(/g,'Math.cos(')
+      .replace(/tan\(/g,'Math.tan(')
+      .replace(/sqrt\(/g,'Math.sqrt(')
+      .replace(/log\(/g,'Math.log10(')
+      .replace(/ln\(/g,'Math.log(')
+      .replace(/abs\(/g,'Math.abs(')
+      .replace(/cbrt\(/g,'Math.cbrt(')
+      .replace(/ceil\(/g,'Math.ceil(')
+      .replace(/floor\(/g,'Math.floor(')
+      .replace(/round\(/g,'Math.round(');
+    return Function('"use strict";return (' + sanitized + ')')();
+  } catch(e) { return NaN; }
+}
+
+function factorial(n) {
+  if (n < 0) return NaN;
+  if (n === 0 || n === 1) return 1;
+  if (n > 170) return Infinity;
+  let r = 1; for(let i=2;i<=n;i++) r*=i; return r;
+}
+
+// ============================================================
+// STANDARD CALCULATOR
+// ============================================================
+let calc = { display: '0', expr: '', justCalc: false, memory: 0 };
+
+function renderStandard() {
+  return `
+  <div class="panel-inner center" style="height:100%">
+  <div style="width:100%;max-width:380px">
+    <div class="display">
+      <div class="disp-expr" id="calc-expr">${calc.expr||'&nbsp;'}</div>
+      <div class="between">
+        <div class="disp-val${calc.display.length>12?' sm':''}" id="calc-disp">${calc.display}</div>
+        <button onclick="copyText('${calc.display}')" style="background:transparent;border:none;cursor:pointer;color:rgba(168,196,255,.3);font-size:14px;padding:4px">⎘</button>
+      </div>
+      ${calc.memory!==0?`<div style="font-size:.65rem;color:#b429f9;margin-top:3px">M: ${calc.memory}</div>`:''}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+      ${[
+        ['MC','MR','M+','M-'],
+        ['C','±','%','÷'],
+        ['7','8','9','×'],
+        ['4','5','6','−'],
+        ['1','2','3','+'],
+        ['0','.','⌫','='],
+      ].flat().map(b => {
+        const cls = b==='='?'btn btn-eq':['÷','×','−','+'].includes(b)?'btn btn-op':b==='C'?'btn btn-del':['MC','MR','M+','M-'].includes(b)?'btn btn-sci':'btn';
+        return `<button class="${cls}" style="height:56px" onclick="calcBtn('${b}')">${b}</button>`;
+      }).join('')}
+    </div>
+  </div>
+  </div>`;
+}
+
+function calcBtn(b) {
+  if (b==='=') { calcEval(); return; }
+  if (b==='C') { calc={...calc, display:'0', expr:'', justCalc:false}; refreshCalc(); return; }
+  if (b==='⌫') { calc.display=calc.display.length>1?calc.display.slice(0,-1):'0'; refreshCalc(); return; }
+  if (b==='±') { calc.display=String(parseFloat(calc.display)*-1); refreshCalc(); return; }
+  if (b==='%') { calc.display=String(parseFloat(calc.display)/100); refreshCalc(); return; }
+  if (b==='MC') { calc.memory=0; toast('Memory cleared'); return; }
+  if (b==='MR') { calc.display=String(calc.memory); refreshCalc(); return; }
+  if (b==='M+') { calc.memory+=parseFloat(calc.display); toast('M+: '+calc.memory); return; }
+  if (b==='M-') { calc.memory-=parseFloat(calc.display); toast('M-: '+calc.memory); return; }
+  const ops=['÷','×','−','+']; const isOp=ops.includes(b);
+  if (calc.justCalc && !isOp) { calc.display=b==='.'?'0.':b; calc.expr=b==='.'?'0.':b; calc.justCalc=false; refreshCalc(); return; }
+  if (isOp) {
+    calc.expr=(calc.expr||calc.display)+b;
+    calc.display=b; calc.justCalc=false; refreshCalc(); return;
+  }
+  if (b==='.' && calc.display.includes('.')) return;
+  if (calc.display==='0'&&b!=='.') { calc.display=b; calc.expr=(calc.expr.slice(0,-1)||'')+b; }
+  else { calc.display=calc.justCalc?b:calc.display+b; calc.expr+=b; }
+  calc.justCalc=false; refreshCalc();
+}
+
+function calcEval() {
+  try {
+    const e = calc.expr.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-');
+    if (!e) return;
+    const r = parseFloat(Function('"use strict";return ('+e+')')());
+    const rs = isNaN(r)?'Error':parseFloat(r.toFixed(10)).toString();
+    addHistory('Standard', calc.expr, rs);
+    calc.display=rs; calc.expr=''; calc.justCalc=true; refreshCalc();
+  } catch { calc.display='Error'; calc.expr=''; calc.justCalc=true; refreshCalc(); }
+}
+
+function refreshCalc() {
+  const d=document.getElementById('calc-disp'), ex=document.getElementById('calc-expr');
+  if(d){d.textContent=calc.display;d.className='disp-val'+(calc.display.length>12?' sm':'');}
+  if(ex)ex.innerHTML=calc.expr||'&nbsp;';
+}
+
+// Keyboard support
+document.addEventListener('keydown', e => {
+  if (state.activeMode!=='standard') return;
+  const map={'Enter':'=','Backspace':'⌫','Escape':'C','+':'+','-':'−','*':'×','/':'÷','%':'%','.':'.'};
+  if(map[e.key]){calcBtn(map[e.key]);return;}
+  if(e.key>='0'&&e.key<='9') calcBtn(e.key);
+});
+
+// ============================================================
+// SCIENTIFIC CALCULATOR
+// ============================================================
+let sci = { expr: '', display: '0', angle: 'DEG', shift: false };
+
+function renderScientific() {
+  const shifted = sci.shift;
+  return `
+  <div class="panel-inner center" style="height:100%;overflow-y:auto">
+  <div style="width:100%;max-width:520px">
+    <div class="display">
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <button onclick="sciToggleAngle()" class="tag tag-c" style="cursor:pointer">${sci.angle}</button>
+        <button onclick="sciToggleShift()" class="tag${shifted?' tag-p':' tag-b'}" style="cursor:pointer">SHIFT</button>
+      </div>
+      <div class="disp-expr" id="sci-expr">${sci.expr||'&nbsp;'}</div>
+      <div class="between">
+        <div class="disp-val sm" id="sci-disp">${sci.display}</div>
+        <button onclick="copyText('${sci.display}')" style="background:transparent;border:none;cursor:pointer;color:rgba(168,196,255,.3);font-size:14px">⎘</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:6px">
+      ${[
+        shifted?['sinh(','cosh(','tanh(','asin(','acos(']:['sin(','cos(','tan(','π','e'],
+        shifted?['atan(','log10(','log(','n!','1/(']:['x²','x³','xⁿ','√(','∛('],
+        ['log10(','log(','n!','abs(','('],
+        [')','^','EXP','DEL','C'],
+      ].flat().map(b => `<button class="btn btn-sci" style="height:34px" onclick="sciBtn('${b}')">${b.replace('(',' ')}</button>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+      ${[
+        ['C','±','%','÷'],
+        ['7','8','9','×'],
+        ['4','5','6','−'],
+        ['1','2','3','+'],
+        ['0','.','SHIFT','='],
+      ].flat().map(b => {
+        const cls=b==='='?'btn btn-eq':['÷','×','−','+'].includes(b)?'btn btn-op':b==='C'?'btn btn-del':b==='SHIFT'?`btn${sci.shift?' btn-op':' btn-sci'}`:'btn';
+        return `<button class="${cls}" style="height:40px;font-size:${b==='SHIFT'?.65:.85}rem" onclick="sciBtn('${b}')">${b}</button>`;
+      }).join('')}
+    </div>
+  </div>
+  </div>`;
+}
+
+function sciToggleAngle() { sci.angle=sci.angle==='DEG'?'RAD':'DEG'; renderContent(); }
+function sciToggleShift() { sci.shift=!sci.shift; renderContent(); }
+
+function sciBtn(b) {
+  if (b==='C'){sci.expr='';sci.display='0';renderContent();return;}
+  if (b==='='){sciEval();return;}
+  if (b==='DEL'){sci.expr=sci.expr.slice(0,-1);sci.display=sci.expr||'0';refreshSci();return;}
+  if (b==='SHIFT'){sciToggleShift();return;}
+  if (b==='±'){sci.expr=sci.expr.startsWith('-')?sci.expr.slice(1):'-'+sci.expr;refreshSci();return;}
+  if (b==='n!'){
+    try{const v=parseFloat(sci.expr||sci.display);sci.expr=String(factorial(v));sci.display=sci.expr;refreshSci();}catch{}return;
+  }
+  if(b==='x²'){sci.expr+='**2';sci.display=sci.expr;refreshSci();return;}
+  if(b==='x³'){sci.expr+='**3';sci.display=sci.expr;refreshSci();return;}
+  if(b==='π'){sci.expr+=String(Math.PI);sci.display=sci.expr;refreshSci();return;}
+  if(b==='e'){sci.expr+=String(Math.E);sci.display=sci.expr;refreshSci();return;}
+  sci.expr+=b; sci.display=sci.expr; refreshSci();
+}
+
+function sciEval() {
+  try {
+    let e = sci.expr;
+    // Convert angle for trig
+    if (sci.angle==='DEG') {
+      e=e.replace(/Math\.sin\(/g,`Math.sin(Math.PI/180*`).replace(/Math\.cos\(/g,`Math.cos(Math.PI/180*`).replace(/Math\.tan\(/g,`Math.tan(Math.PI/180*`);
+    }
+    e=e.replace(/sin\(/g,'Math.sin(').replace(/cos\(/g,'Math.cos(').replace(/tan\(/g,'Math.tan(')
+       .replace(/sqrt\(/g,'Math.sqrt(').replace(/cbrt\(/g,'Math.cbrt(').replace(/log10\(/g,'Math.log10(')
+       .replace(/log\(/g,'Math.log(').replace(/abs\(/g,'Math.abs(').replace(/asin\(/g,'Math.asin(')
+       .replace(/acos\(/g,'Math.acos(').replace(/atan\(/g,'Math.atan(').replace(/sinh\(/g,'Math.sinh(')
+       .replace(/cosh\(/g,'Math.cosh(').replace(/tanh\(/g,'Math.tanh(').replace(/\^/g,'**')
+       .replace(/EXP/g,'*Math.pow(10,').replace(/xⁿ/g,'**');
+    const r = parseFloat(Function('"use strict";return ('+e+')')());
+    const rs = isNaN(r)?'Error':parseFloat(r.toFixed(10)).toString();
+    addHistory('Scientific', sci.expr, rs);
+    sci.display=rs; sci.expr=rs; renderContent();
+  } catch { sci.display='Error'; renderContent(); }
+}
+
+function refreshSci() {
+  const d=document.getElementById('sci-disp'),ex=document.getElementById('sci-expr');
+  if(d)d.textContent=sci.display||'0'; if(ex)ex.innerHTML=sci.expr||'&nbsp;';
+}
+
+// ============================================================
+// GRAPHING CALCULATOR
+// ============================================================
+let graph = {
+  equations: [{id:1,expr:'Math.sin(x)',color:'#b429f9',on:true},{id:2,expr:'Math.cos(x)',color:'#2979ff',on:true}],
+  xMin:-10, xMax:10, nextId:3
+};
+
+function renderGraphing() {
+  const eqHtml = graph.equations.map(eq => `
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(6,13,26,.6);border:1px solid ${eq.color}25;border-radius:10px">
+      <button onclick="toggleGraphEq(${eq.id})" style="width:12px;height:12px;border-radius:50%;background:${eq.on?eq.color:'transparent'};border:2px solid ${eq.color};box-shadow:${eq.on?`0 0 6px ${eq.color}60`:'none'};cursor:pointer;flex-shrink:0"></button>
+      <input value="${eq.expr}" onchange="updateGraphExpr(${eq.id},this.value)" style="background:transparent;border:none;outline:none;font-family:'JetBrains Mono';font-size:.85rem;color:${eq.color};flex:1;min-width:60px"/>
+      ${graph.equations.length>1?`<button onclick="removeGraphEq(${eq.id})" style="background:transparent;border:none;cursor:pointer;color:rgba(255,255,255,.2);font-size:14px">✕</button>`:''}
+    </div>
+  `).join('');
+
+  return `
+  <div class="panel" style="padding:12px;gap:10px;display:flex;flex-direction:column">
+    <div class="glass" style="border-radius:16px;padding:12px;flex-shrink:0">
+      <div class="between" style="margin-bottom:8px">
+        <span style="font-family:Orbitron;font-size:.6rem;color:rgba(168,196,255,.35);letter-spacing:.1em">EQUATIONS</span>
+        <div style="display:flex;gap:6px">
+          <button class="btn" style="padding:4px 10px;font-size:.7rem;height:auto" onclick="zoomGraph(1.5)">Zoom−</button>
+          <button class="btn" style="padding:4px 10px;font-size:.7rem;height:auto" onclick="zoomGraph(0.67)">Zoom+</button>
+          <button class="btn" style="padding:4px 10px;font-size:.7rem;height:auto" onclick="resetGraph()">Reset</button>
+          <button class="btn btn-op" style="padding:4px 10px;font-size:.7rem;height:auto" onclick="addGraphEq()">+ Add</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${eqHtml}</div>
+    </div>
+    <div class="glass" style="border-radius:16px;flex:1;overflow:hidden;min-height:260px;position:relative">
+      <canvas id="graph-canvas" style="width:100%;height:100%;display:block"></canvas>
+      <div style="position:absolute;bottom:8px;right:12px;font-family:'JetBrains Mono';font-size:.65rem;color:rgba(168,196,255,.2)">x:[${graph.xMin.toFixed(1)},${graph.xMax.toFixed(1)}]</div>
+    </div>
+  </div>`;
+}
+
+function drawGraph() {
+  setTimeout(() => {
+    const canvas = document.getElementById('graph-canvas');
+    if (!canvas) return;
+    const parent = canvas.parentElement;
+    canvas.width = parent.offsetWidth;
+    canvas.height = parent.offsetHeight;
+    const ctx = canvas.getContext('2d');
+    const W=canvas.width, H=canvas.height;
+    const xMin=graph.xMin, xMax=graph.xMax;
+    const xRange=xMax-xMin;
+    const yPad=0.1;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='rgba(6,13,26,0.5)'; ctx.fillRect(0,0,W,H);
+
+    // Grid
+    const gridStep = Math.pow(10, Math.floor(Math.log10(xRange/5)));
+    ctx.strokeStyle='rgba(41,121,255,0.1)'; ctx.lineWidth=1;
+    for(let x=Math.ceil(xMin/gridStep)*gridStep; x<=xMax; x+=gridStep) {
+      const px=((x-xMin)/xRange)*W;
+      ctx.beginPath(); ctx.moveTo(px,0); ctx.lineTo(px,H); ctx.stroke();
+      ctx.fillStyle='rgba(168,196,255,0.3)'; ctx.font='10px JetBrains Mono';
+      ctx.fillText(x.toFixed(gridStep<1?1:0), px+2, H-4);
+    }
+
+    // Compute y range
+    let allYs=[];
+    graph.equations.filter(e=>e.on).forEach(eq => {
+      for(let i=0;i<W;i+=2) {
+        const x=xMin+(i/W)*xRange;
+        try{ const y=Function('x','"use strict";return '+eq.expr)(x); if(isFinite(y))allYs.push(y); }catch{}
+      }
+    });
+    let yMin=allYs.length?Math.min(...allYs):-10, yMax=allYs.length?Math.max(...allYs):10;
+    const yRange=yMax-yMin||20; yMin-=yRange*yPad; yMax+=yRange*yPad;
+    const yRangeT=yMax-yMin;
+
+    for(let y=Math.ceil(yMin/gridStep)*gridStep; y<=yMax; y+=gridStep) {
+      const py=H-((y-yMin)/yRangeT)*H;
+      ctx.strokeStyle='rgba(41,121,255,0.1)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(0,py); ctx.lineTo(W,py); ctx.stroke();
+      if(Math.abs(y)>0.001) { ctx.fillStyle='rgba(168,196,255,0.3)'; ctx.font='10px JetBrains Mono'; ctx.fillText(y.toFixed(gridStep<1?1:0), 2, py-2); }
+    }
+
+    // Axes
+    ctx.strokeStyle='rgba(41,121,255,0.4)'; ctx.lineWidth=1.5;
+    const x0=((0-xMin)/xRange)*W, y0=H-((0-yMin)/yRangeT)*H;
+    ctx.beginPath(); ctx.moveTo(x0,0); ctx.lineTo(x0,H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,y0); ctx.lineTo(W,y0); ctx.stroke();
+
+    // Plot equations
+    graph.equations.filter(e=>e.on).forEach(eq => {
+      ctx.strokeStyle=eq.color; ctx.lineWidth=2.5; ctx.shadowBlur=6; ctx.shadowColor=eq.color;
+      ctx.beginPath(); let first=true;
+      for(let i=0;i<=W;i+=1.5) {
+        const x=xMin+(i/W)*xRange;
+        try {
+          const y=Function('x','"use strict";return '+eq.expr)(x);
+          if(!isFinite(y)){first=true;continue;}
+          const px=i, py=H-((y-yMin)/yRangeT)*H;
+          if(first){ctx.moveTo(px,py);first=false;}else ctx.lineTo(px,py);
+        } catch{first=true;}
+      }
+      ctx.stroke(); ctx.shadowBlur=0;
+    });
+  }, 50);
+}
+
+function addGraphEq() {
+  const colors=['#b429f9','#2979ff','#00e5ff','#00e676','#ff9800','#f50057'];
+  graph.equations.push({id:graph.nextId++,expr:'Math.sin(x)',color:colors[graph.equations.length%colors.length],on:true});
+  renderContent(); setTimeout(drawGraph,100);
+}
+function removeGraphEq(id){graph.equations=graph.equations.filter(e=>e.id!==id);renderContent();setTimeout(drawGraph,100);}
+function toggleGraphEq(id){graph.equations=graph.equations.map(e=>e.id===id?{...e,on:!e.on}:e);renderContent();setTimeout(drawGraph,100);}
+function updateGraphExpr(id,val){graph.equations=graph.equations.map(e=>e.id===id?{...e,expr:val}:e);setTimeout(drawGraph,200);}
+function zoomGraph(f){graph.xMin*=f;graph.xMax*=f;const el=document.querySelector('#graph-canvas+div');if(el)el.textContent=`x:[${graph.xMin.toFixed(1)},${graph.xMax.toFixed(1)}]`;setTimeout(drawGraph,50);}
+function resetGraph(){graph.xMin=-10;graph.xMax=10;setTimeout(drawGraph,50);}
+
+// ============================================================
+// PROGRAMMER CALCULATOR
+// ============================================================
+let prog = { value: 0n, base: 'DEC' };
+
+function renderProgrammer() {
+  const {value, base} = prog;
+  const toB=(v,b)=>{const n=BigInt(v);return b==='HEX'?n.toString(16).toUpperCase():b==='DEC'?n.toString(10):b==='OCT'?n.toString(8):n.toString(2);};
+  const bits=toB(value&0xFFFFFFFFn,'BIN').padStart(32,'0');
+
+  return `
+  <div class="panel-inner" style="height:100%;overflow-y:auto">
+  <div style="max-width:520px;margin:0 auto">
+    <div class="display" style="margin-bottom:10px">
+      ${['HEX','DEC','OCT','BIN'].map(b=>`
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+          <button onclick="progSetBase('${b}')" style="width:44px;text-align:center;font-size:.7rem;font-family:'JetBrains Mono';padding:2px 6px;border-radius:6px;cursor:pointer;border:1px solid ${b===base?'rgba(180,41,249,.5)':'rgba(41,121,255,.1)'};background:${b===base?'rgba(180,41,249,.2)':'transparent'};color:${b===base?'#d580ff':'rgba(168,196,255,.3)'}">${b}</button>
+          <div onclick="copyText('${toB(value,b)}');toast('${b} copied!')" style="font-family:'JetBrains Mono';font-size:.9rem;color:${b===base?'#fff':'rgba(168,196,255,.3)'};cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${toB(value,b)}</div>
+        </div>`).join('')}
+    </div>
+    <div class="glass" style="border-radius:14px;padding:12px;margin-bottom:10px">
+      <div style="font-family:Orbitron;font-size:.6rem;color:rgba(168,196,255,.3);letter-spacing:.1em;margin-bottom:8px">32-BIT REPRESENTATION</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">
+        ${bits.split('').map((b,i)=>`<button onclick="progToggleBit(${i})" class="bit ${b==='1'?'on':'off'}">${b}</button>`).join('')}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+      ${[
+        ['D','E','F','CLR'],['A','B','C','DEL'],
+        ['7','8','9','LSH'],['4','5','6','RSH'],
+        ['1','2','3','NOT'],['0','XOR','AND','OR'],
+      ].flat().map(b=>{
+        const isOp=['CLR','DEL','LSH','RSH','NOT','XOR','AND','OR'].includes(b);
+        const isHex=/^[A-F]$/.test(b);
+        const disabled=(base==='DEC'&&isHex)||(base==='OCT'&&(isHex||['8','9'].includes(b)))||(base==='BIN'&&(isHex||(!['0','1'].includes(b)&&!isOp)));
+        return `<button class="btn${b==='CLR'?' btn-del':isOp?' btn-sci':isHex?' btn-op':''}" style="height:38px;font-size:.8rem;${disabled?'opacity:.2;pointer-events:none':''}" onclick="progBtn('${b}')">${b}</button>`;
+      }).join('')}
+    </div>
+  </div>
+  </div>`;
+}
+
+function progSetBase(b){prog.base=b;renderContent();}
+function progBtn(b){
+  const {value,base}=prog;
+  const toB=(v,ba)=>{const n=BigInt(v);return ba==='HEX'?n.toString(16).toUpperCase():ba==='DEC'?n.toString(10):ba==='OCT'?n.toString(8):n.toString(2);};
+  const fromB=(s,ba)=>{try{if(!s||s==='-')return 0n;return ba==='HEX'?BigInt('0x'+s):ba==='DEC'?BigInt(s):ba==='OCT'?BigInt('0o'+s):BigInt('0b'+s);}catch{return 0n;}};
+  const cur=toB(value,base);
+  if(b==='CLR'){prog.value=0n;renderContent();return;}
+  if(b==='DEL'){const ns=cur.slice(0,-1)||'0';prog.value=fromB(ns,base);renderContent();return;}
+  if(b==='NOT'){prog.value=~value&0xFFFFFFFFn;renderContent();return;}
+  if(b==='XOR'){prog.value=value^0xFFFFFFFFn;renderContent();return;}
+  if(b==='AND'){prog.value=value&0xFFn;renderContent();return;}
+  if(b==='OR'){prog.value=value|0xFFn;renderContent();return;}
+  if(b==='LSH'){prog.value=(value<<1n)&0xFFFFFFFFn;renderContent();return;}
+  if(b==='RSH'){prog.value=value>>1n;renderContent();return;}
+  const ns=cur==='0'?b.toLowerCase():cur.toLowerCase()+b.toLowerCase();
+  try{prog.value=fromB(ns,base);}catch{}
+  renderContent();
+}
+function progToggleBit(i){const mask=1n<<BigInt(31-i);prog.value=(prog.value&mask)?prog.value&~mask:prog.value|mask;renderContent();}
+
+// ============================================================
+// DATE CALCULATOR
+// ============================================================
+function renderDate() {
+  return `
+  <div class="panel-inner center" style="height:100%">
+  <div class="glass-card max-w-sm mx-auto" style="width:100%">
+    <div style="font-family:Orbitron;font-size:.8rem;color:#ff9800;margin-bottom:16px;letter-spacing:.1em">DATE CALCULATOR</div>
+    <div class="space-y">
+      <div><span class="lbl">Date 1 / Birth Date</span><input type="date" id="d1" class="inp"/></div>
+      <div><span class="lbl">Date 2 / End Date</span><input type="date" id="d2" class="inp"/></div>
+      <button class="btn btn-eq" style="width:100%;height:44px" onclick="calcDate()">CALCULATE</button>
+    </div>
+    <div id="date-result"></div>
+  </div>
+  </div>`;
+}
+
+function calcDate() {
+  const d1=new Date(document.getElementById('d1').value), d2=new Date(document.getElementById('d2').value);
+  if(!d1||!d2||isNaN(d1)||isNaN(d2)){toast('Select both dates','error');return;}
+  const diff=Math.abs(d2-d1), days=Math.floor(diff/86400000);
+  const months=Math.abs((d2.getFullYear()-d1.getFullYear())*12+(d2.getMonth()-d1.getMonth()));
+  const years=Math.abs(d2.getFullYear()-d1.getFullYear());
+  let biz=0; const s=new Date(Math.min(d1,d2)), en=new Date(Math.max(d1,d2));
+  for(let d=new Date(s);d<=en;d.setDate(d.getDate()+1)) if(d.getDay()!==0&&d.getDay()!==6) biz++;
+  const now=new Date(), birth=d1; let age=now.getFullYear()-birth.getFullYear();
+  if(now.getMonth()<birth.getMonth()||(now.getMonth()===birth.getMonth()&&now.getDate()<birth.getDate())) age--;
+  const isLeap=y=>(y%4===0&&y%100!==0)||y%400===0;
+  const items=[['Days',days,'#ff9800'],['Weeks',Math.floor(days/7),'#ff9800'],['Months',months,'#f50057'],['Years',years,'#2979ff'],['Business Days',biz,'#00e676'],['Age (from D1)',age+' yrs','#b429f9'],[d1.getFullYear(),isLeap(d1.getFullYear())?'✓ Leap':'✗ Not Leap','#00e5ff'],[d2.getFullYear(),isLeap(d2.getFullYear())?'✓ Leap':'✗ Not Leap','#00e5ff']];
+  document.getElementById('date-result').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:14px">${items.map(([l,v,c])=>`<div style="padding:10px;border-radius:10px;background:${c}10;border:1px solid ${c}20"><div style="font-size:.7rem;color:rgba(168,196,255,.5)">${l}</div><div style="font-family:'JetBrains Mono';color:${c};font-weight:700">${v}</div></div>`).join('')}</div>`;
+  addHistory('Date', `${document.getElementById('d1').value} → ${document.getElementById('d2').value}`, `${days} days`);
+}
+
+// ============================================================
+// BMI
+// ============================================================
+function renderBMI() {
+  return `<div class="panel-inner center" style="height:100%">
+  <div class="glass-card max-w-sm mx-auto" style="width:100%">
+    <div style="font-family:Orbitron;font-size:.8rem;color:#f50057;margin-bottom:16px;letter-spacing:.1em">BMI CALCULATOR</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button id="bmi-metric" class="btn btn-eq" style="flex:1;height:36px;font-size:.75rem" onclick="bmiSetUnit('metric')">Metric (kg/cm)</button>
+      <button id="bmi-imperial" class="btn" style="flex:1;height:36px;font-size:.75rem" onclick="bmiSetUnit('imperial')">Imperial (lb/in)</button>
+    </div>
+    <div class="space-y">
+      <div><span class="lbl" id="bmi-wlbl">Weight (kg)</span><input type="number" id="bmi-w" class="inp" placeholder="70"/></div>
+      <div><span class="lbl" id="bmi-hlbl">Height (cm)</span><input type="number" id="bmi-h" class="inp" placeholder="170"/></div>
+      <button class="btn btn-eq" style="width:100%;height:44px" onclick="calcBMI()">CALCULATE BMI</button>
+    </div>
+    <div id="bmi-result"></div>
+  </div></div>`;
+}
+
+let bmiUnit='metric';
+function bmiSetUnit(u){
+  bmiUnit=u;
+  document.getElementById('bmi-wlbl').textContent='Weight ('+(u==='metric'?'kg':'lbs')+')';
+  document.getElementById('bmi-hlbl').textContent='Height ('+(u==='metric'?'cm':'inches')+')';
+  document.getElementById('bmi-metric').className='btn '+(u==='metric'?'btn-eq':'');
+  document.getElementById('bmi-imperial').className='btn '+(u==='imperial'?'btn-eq':'');
+}
+function calcBMI(){
+  const w=parseFloat(document.getElementById('bmi-w').value), h=parseFloat(document.getElementById('bmi-h').value);
+  if(!w||!h){toast('Enter valid values','error');return;}
+  const bmi=bmiUnit==='metric'?w/((h/100)**2):(703*w)/(h**2), v=parseFloat(bmi.toFixed(1));
+  let cat,c; if(v<18.5){cat='Underweight';c='#2979ff';}else if(v<25){cat='Normal Weight';c='#00e676';}else if(v<30){cat='Overweight';c='#ff9800';}else{cat='Obese';c='#f50057';}
+  document.getElementById('bmi-result').innerHTML=`<div style="margin-top:14px;text-align:center;padding:16px;border-radius:14px;background:${c}12;border:1px solid ${c}35"><div style="font-size:3rem;font-family:'JetBrains Mono';font-weight:700;color:${c};text-shadow:0 0 20px ${c}60">${v}</div><div style="color:${c};font-weight:600;margin-top:4px">${cat}</div></div>`;
+  addHistory('BMI', `${w}${bmiUnit==='metric'?'kg':'lb'}/${h}${bmiUnit==='metric'?'cm':'in'}`, `BMI ${v} (${cat})`);
+}
+
+// ============================================================
+// GPA
+// ============================================================
+let gpaSubjects=[{id:1,name:'Subject 1',grade:'A',credits:3},{id:2,name:'Subject 2',grade:'B+',credits:4}];
+const gradePoints={'A+':4.0,'A':4.0,'A-':3.7,'B+':3.3,'B':3.0,'B-':2.7,'C+':2.3,'C':2.0,'C-':1.7,'D+':1.3,'D':1.0,'F':0.0};
+
+function renderGPA(){
+  return `<div class="panel-inner" style="height:100%;overflow-y:auto">
+  <div class="glass-card" style="max-width:560px;margin:0 auto;width:100%">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <span style="font-family:Orbitron;font-size:.8rem;color:#ff6d00;letter-spacing:.1em">GPA / CGPA CALCULATOR</span>
+      <button class="btn btn-op" style="padding:4px 12px;height:auto;font-size:.75rem" onclick="addGPASubject()">+ Add Subject</button>
+    </div>
+    <div style="max-height:260px;overflow-y:auto;margin-bottom:12px">
+      ${gpaSubjects.map((s,i)=>`
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+          <input value="${s.name}" onchange="updateGPA(${s.id},'name',this.value)" class="inp" style="flex:1;min-width:80px" placeholder="Subject"/>
+          <select onchange="updateGPA(${s.id},'grade',this.value)" class="sel" style="width:80px">
+            ${Object.keys(gradePoints).map(g=>`<option${g===s.grade?' selected':''}>${g}</option>`).join('')}
+          </select>
+          <input type="number" value="${s.credits}" onchange="updateGPA(${s.id},'credits',+this.value)" class="inp" style="width:56px" min="1" max="6"/>
+          ${gpaSubjects.length>1?`<button onclick="removeGPA(${s.id})" style="background:transparent;border:none;cursor:pointer;color:rgba(245,0,87,.5);font-size:18px">×</button>`:''}
+        </div>`).join('')}
+    </div>
+    <button class="btn btn-eq" style="width:100%;height:44px" onclick="calcGPA()">CALCULATE GPA</button>
+    <div id="gpa-result"></div>
+  </div></div>`;
+}
+
+function addGPASubject(){gpaSubjects.push({id:Date.now(),name:`Subject ${gpaSubjects.length+1}`,grade:'A',credits:3});renderContent();}
+function removeGPA(id){gpaSubjects=gpaSubjects.filter(s=>s.id!==id);renderContent();}
+function updateGPA(id,f,v){gpaSubjects=gpaSubjects.map(s=>s.id===id?{...s,[f]:v}:s);}
+function calcGPA(){
+  let tp=0,tc=0; gpaSubjects.forEach(s=>{tp+=(gradePoints[s.grade]||0)*s.credits;tc+=s.credits;});
+  const gpa=tc?(tp/tc).toFixed(2):0;
+  document.getElementById('gpa-result').innerHTML=`<div style="margin-top:14px;text-align:center;padding:16px;border-radius:14px;background:rgba(255,109,0,.1);border:1px solid rgba(255,109,0,.3)"><div style="font-size:2.5rem;font-family:'JetBrains Mono';font-weight:700;color:#ff6d00;text-shadow:0 0 20px rgba(255,109,0,.5)">${gpa}</div><div style="color:rgba(168,196,255,.5);font-size:.8rem;margin-top:4px">GPA (out of 4.0) | Total Credits: ${tc}</div></div>`;
+  addHistory('GPA', `${gpaSubjects.length} subjects`, `GPA: ${gpa}`);
+}
+
+// ============================================================
+// EMI
+// ============================================================
+function renderEMI(){
+  return `<div class="panel-inner center" style="height:100%">
+  <div class="glass-card max-w-sm mx-auto" style="width:100%">
+    <div style="font-family:Orbitron;font-size:.8rem;color:#00e676;margin-bottom:16px;letter-spacing:.1em">EMI CALCULATOR</div>
+    <div class="space-y">
+      <div><span class="lbl">Loan Amount (₹)</span><input type="number" id="emi-p" class="inp" placeholder="500000"/></div>
+      <div><span class="lbl">Annual Interest Rate (%)</span><input type="number" id="emi-r" class="inp" placeholder="8.5"/></div>
+      <div><span class="lbl">Tenure (Years)</span><input type="number" id="emi-n" class="inp" placeholder="20"/></div>
+      <button class="btn btn-eq" style="width:100%;height:44px" onclick="calcEMI()">CALCULATE EMI</button>
+    </div>
+    <div id="emi-result"></div>
+  </div></div>`;
+}
+
+function calcEMI(){
+  const P=parseFloat(document.getElementById('emi-p').value),R=parseFloat(document.getElementById('emi-r').value)/100/12,N=parseFloat(document.getElementById('emi-n').value)*12;
+  if(!P||!R||!N){toast('Enter all values','error');return;}
+  const emi=P*R*Math.pow(1+R,N)/(Math.pow(1+R,N)-1),total=emi*N,interest=total-P;
+  const pPct=((P/total)*100).toFixed(1), iPct=(100-pPct).toFixed(1);
+  document.getElementById('emi-result').innerHTML=`
+    <div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">
+      ${[['Monthly EMI',`₹${emi.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',')}` ,'#00e676'],['Total Amount',`₹${total.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',')}` ,'#2979ff'],['Total Interest',`₹${interest.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',')}` ,'#f50057']].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:10px;background:${c}10;border:1px solid ${c}20"><span style="font-size:.75rem;color:rgba(168,196,255,.5)">${l}</span><span style="font-family:'JetBrains Mono';font-weight:700;color:${c}">${v}</span></div>`).join('')}
+      <div style="border-radius:8px;overflow:hidden;height:10px;display:flex;margin-top:4px">
+        <div style="width:${pPct}%;background:linear-gradient(90deg,#2979ff,#00e5ff)"></div>
+        <div style="flex:1;background:linear-gradient(90deg,#b429f9,#f50057)"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.65rem;color:rgba(168,196,255,.4)">
+        <span>Principal ${pPct}%</span><span>Interest ${iPct}%</span>
+      </div>
+    </div>`;
+  addHistory('EMI', `₹${P} @ ${document.getElementById('emi-r').value}%`, `EMI: ₹${emi.toFixed(0)}`);
+}
+
+// ============================================================
+// SIP
+// ============================================================
+function renderSIP(){
+  return `<div class="panel-inner center" style="height:100%">
+  <div class="glass-card max-w-sm mx-auto" style="width:100%">
+    <div style="font-family:Orbitron;font-size:.8rem;color:#2979ff;margin-bottom:16px;letter-spacing:.1em">SIP INVESTMENT</div>
+    <div class="space-y">
+      <div><span class="lbl">Monthly Investment (₹)</span><input type="number" id="sip-m" class="inp" placeholder="5000"/></div>
+      <div><span class="lbl">Expected Annual Return (%)</span><input type="number" id="sip-r" class="inp" placeholder="12"/></div>
+      <div><span class="lbl">Investment Period (Years)</span><input type="number" id="sip-y" class="inp" placeholder="10"/></div>
+      <button class="btn btn-eq" style="width:100%;height:44px" onclick="calcSIP()">CALCULATE RETURNS</button>
+    </div>
+    <div id="sip-result"></div>
+  </div></div>`;
+}
+
+function calcSIP(){
+  const P=parseFloat(document.getElementById('sip-m').value),r=parseFloat(document.getElementById('sip-r').value)/100/12,n=parseFloat(document.getElementById('sip-y').value)*12;
+  if(!P||!r||!n){toast('Enter all values','error');return;}
+  const maturity=P*(Math.pow(1+r,n)-1)/r*(1+r),invested=P*n,returns=maturity-invested;
+  const retPct=((returns/invested)*100).toFixed(1);
+  const fmt=v=>parseInt(v).toLocaleString();
+  document.getElementById('sip-result').innerHTML=`<div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">
+    ${[['Maturity Value',`₹${fmt(maturity)}`,'#2979ff'],['Amount Invested',`₹${fmt(invested)}`,'#00e5ff'],['Est. Returns',`₹${fmt(returns)}`,'#00e676']].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:10px;background:${c}10;border:1px solid ${c}20"><span style="font-size:.75rem;color:rgba(168,196,255,.5)">${l}</span><span style="font-family:'JetBrains Mono';font-weight:700;color:${c}">${v}</span></div>`).join('')}
+    <div style="text-align:center;margin-top:6px"><span class="tag tag-c">Returns: ${retPct}% on invested amount</span></div>
+  </div>`;
+  addHistory('SIP', `₹${P}/mo @ ${document.getElementById('sip-r').value}%`, `₹${fmt(maturity)}`);
+}
+
+// ============================================================
+// PERCENTAGE
+// ============================================================
+function renderPercentage(){
+  return `<div class="panel-inner center" style="height:100%">
+  <div class="glass-card max-w-sm mx-auto" style="width:100%">
+    <div style="font-family:Orbitron;font-size:.8rem;color:#00e5ff;margin-bottom:14px;letter-spacing:.1em">PERCENTAGE CALCULATOR</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px">
+      ${[['X% of Y','pct-0'],['% Change','pct-1'],['X is ?% of Y','pct-2'],['Reverse %','pct-3']].map(([l,id])=>`<button id="${id}" class="btn btn-sci" style="height:34px;font-size:.68rem" onclick="setPctMode(${id.split('-')[1]})">${l}</button>`).join('')}
+    </div>
+    <div class="space-y">
+      <div><span class="lbl">Value A</span><input type="number" id="pct-a" class="inp"/></div>
+      <div><span class="lbl">Value B</span><input type="number" id="pct-b" class="inp"/></div>
+      <button class="btn btn-eq" style="width:100%;height:44px" onclick="calcPct()">CALCULATE</button>
+    </div>
+    <div id="pct-result"></div>
+  </div></div>`;
+}
+
+let pctMode=0;
+function setPctMode(m){
+  pctMode=m;
+  for(let i=0;i<4;i++){const el=document.getElementById('pct-'+i);if(el)el.className='btn '+(i===m?'btn-sci btn-act':'btn-sci');}
+}
+
+function calcPct(){
+  const a=parseFloat(document.getElementById('pct-a').value),b=parseFloat(document.getElementById('pct-b').value);
+  let r,expr,suffix='';
+  if(pctMode===0){r=a/100*b;expr=`${a}% of ${b}`;}
+  else if(pctMode===1){r=((b-a)/a)*100;expr=`${a}→${b}`;suffix='%';}
+  else if(pctMode===2){r=(a/b)*100;expr=`${a}/${b}×100`;suffix='%';}
+  else{r=a/(b/100);expr=`${a}÷${b}%`;}
+  if(isNaN(r)){toast('Invalid input','error');return;}
+  document.getElementById('pct-result').innerHTML=`<div class="result-box" style="margin-top:14px;text-align:center"><div style="font-size:.7rem;color:rgba(168,196,255,.4);margin-bottom:4px">${expr}</div><div style="font-size:2rem;font-family:'JetBrains Mono';font-weight:700;color:#00e5ff">${parseFloat(r.toFixed(6))}${suffix}</div></div>`;
+  addHistory('Percentage', expr, r.toFixed(6)+suffix);
+}
+
+// ============================================================
+// EQUATION SOLVER
+// ============================================================
+function renderEquation(){
+  return `<div class="panel-inner center" style="height:100%">
+  <div class="glass-card max-w-sm mx-auto" style="width:100%">
+    <div style="font-family:Orbitron;font-size:.8rem;color:#b429f9;margin-bottom:14px;letter-spacing:.1em">EQUATION SOLVER</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button id="eq-lin" class="btn btn-eq" style="flex:1;height:36px;font-size:.7rem" onclick="setEqType('linear')">ax+b=0</button>
+      <button id="eq-quad" class="btn" style="flex:1;height:36px;font-size:.7rem" onclick="setEqType('quadratic')">ax²+bx+c=0</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <div style="flex:1"><span class="lbl">a</span><input type="number" id="eq-a" class="inp" placeholder="1"/></div>
+      <div style="flex:1"><span class="lbl">b</span><input type="number" id="eq-b" class="inp" placeholder="0"/></div>
+      <div id="eq-c-wrap" style="flex:1"><span class="lbl">c</span><input type="number" id="eq-c" class="inp" placeholder="0"/></div>
+    </div>
+    <button class="btn btn-eq" style="width:100%;height:44px" onclick="calcEq()">SOLVE</button>
+    <div id="eq-result"></div>
+  </div></div>`;
+}
+
+let eqType='linear';
+function setEqType(t){
+  eqType=t;
+  document.getElementById('eq-lin').className='btn '+(t==='linear'?'btn-eq':'');
+  document.getElementById('eq-quad').className='btn '+(t==='quadratic'?'btn-eq':'');
+  const cw=document.getElementById('eq-c-wrap');
+  if(cw)cw.style.display=t==='quadratic'?'flex':'none';
+}
+
+function calcEq(){
+  const a=parseFloat(document.getElementById('eq-a').value),b=parseFloat(document.getElementById('eq-b').value);
+  let html='',expr='';
+  if(eqType==='linear'){
+    const x=-b/a; expr=`${a}x+${b}=0`;
+    html=`<div style="margin-top:12px;padding:12px;border-radius:12px;background:rgba(180,41,249,.1);border:1px solid rgba(180,41,249,.25);font-family:'JetBrains Mono';color:#d580ff;font-size:.95rem">x = ${x.toFixed(6)}</div>`;
+    addHistory('Equation',expr,`x=${x.toFixed(6)}`);
+  } else {
+    const c=parseFloat(document.getElementById('eq-c').value)||0;
+    const disc=b*b-4*a*c; expr=`${a}x²+${b}x+${c}=0`;
+    let lines;
+    if(disc<0){const re=(-b/(2*a)).toFixed(4),im=(Math.sqrt(-disc)/(2*a)).toFixed(4);lines=[`x₁ = ${re} + ${im}i`,`x₂ = ${re} - ${im}i`,'Complex roots (Δ<0)'];}
+    else if(disc===0){lines=[`x = ${(-b/(2*a)).toFixed(6)} (double root)`];}
+    else{lines=[`x₁ = ${((-b+Math.sqrt(disc))/(2*a)).toFixed(6)}`,`x₂ = ${((-b-Math.sqrt(disc))/(2*a)).toFixed(6)}`,`Δ = ${disc.toFixed(4)}`];}
+    html=lines.map(l=>`<div style="padding:10px;border-radius:10px;background:rgba(180,41,249,.1);border:1px solid rgba(180,41,249,.2);font-family:'JetBrains Mono';color:#d580ff;font-size:.9rem;margin-bottom:6px">${l}</div>`).join('');
+    html=`<div style="margin-top:12px">${html}</div>`;
+    addHistory('Equation',expr,lines[0]);
+  }
+  document.getElementById('eq-result').innerHTML=html;
+}
+
+// ============================================================
+// MATRIX
+// ============================================================
+let matSize=2, matA=[[1,2],[3,4]], matB=[[5,6],[7,8]], matOp='add';
+
+function renderMatrix(){
+  const makeGrid=(id,mat)=>{
+    return `<div><div class="lbl">Matrix ${id}</div><div style="display:grid;grid-template-columns:repeat(${matSize},1fr);gap:4px">
+      ${mat.map((row,r)=>row.map((v,c)=>`<input type="number" value="${v}" onchange="updateMat('${id}',${r},${c},+this.value)" class="inp" style="padding:6px 4px;font-size:.8rem;text-align:center"/>`).join('')).flat().join('')}
+    </div></div>`;
+  };
+  const showB=['add','sub','mul'].includes(matOp);
+  return `<div class="panel-inner" style="height:100%;overflow-y:auto">
+  <div class="glass-card" style="max-width:580px;margin:0 auto;width:100%">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <span style="font-family:Orbitron;font-size:.8rem;color:#00e676;letter-spacing:.1em">MATRIX CALCULATOR</span>
+      <div style="display:flex;gap:4px">
+        ${[2,3,4].map(s=>`<button class="btn${s===matSize?' btn-sci':''}" style="width:32px;height:28px;font-size:.75rem" onclick="setMatSize(${s})">${s}×${s}</button>`).join('')}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:${showB?'1fr 1fr':'1fr'};gap:16px;margin-bottom:12px">
+      ${makeGrid('A',matA)}
+      ${showB?makeGrid('B',matB):''}
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+      ${[['add','A+B'],['sub','A-B'],['mul','A×B'],['det','det(A)'],['inv','A⁻¹'],['trans','Aᵀ']].map(([id,l])=>`<button class="btn${id===matOp?' btn-op':''}" style="padding:5px 12px;height:auto;font-size:.78rem" onclick="setMatOp('${id}')">${l}</button>`).join('')}
+    </div>
+    <button class="btn btn-eq" style="width:100%;height:44px" onclick="calcMatrix()">COMPUTE</button>
+    <div id="mat-result"></div>
+  </div></div>`;
+}
+
+function setMatSize(s){
+  matSize=s;
+  const init=(m)=>Array.from({length:s},(_,i)=>Array.from({length:s},(_,j)=>m[i]?.[j]??0));
+  matA=init(matA);matB=init(matB);renderContent();
+}
+function setMatOp(op){matOp=op;renderContent();}
+function updateMat(which,r,c,v){if(which==='A')matA[r][c]=v;else matB[r][c]=v;}
+
+function calcMatrix(){
+  try{
+    let res;
+    if(matOp==='add')res=matA.map((row,i)=>row.map((v,j)=>v+matB[i][j]));
+    else if(matOp==='sub')res=matA.map((row,i)=>row.map((v,j)=>v-matB[i][j]));
+    else if(matOp==='mul')res=matA.map((row,i)=>matB[0].map((_,j)=>row.reduce((s,_,k)=>s+matA[i][k]*matB[k][j],0)));
+    else if(matOp==='det'){
+      const det=m=>{if(m.length===1)return m[0][0];if(m.length===2)return m[0][0]*m[1][1]-m[0][1]*m[1][0];return m[0].reduce((a,v,j)=>a+(j%2?-1:1)*v*det(m.slice(1).map(r=>[...r.slice(0,j),...r.slice(j+1)])),0);};
+      document.getElementById('mat-result').innerHTML=`<div class="result-box" style="margin-top:12px;text-align:center"><div style="color:rgba(168,196,255,.4);font-size:.75rem">Determinant</div><div style="font-size:1.8rem;font-family:'JetBrains Mono';color:#00e676;font-weight:700">${parseFloat(det(matA).toFixed(4))}</div></div>`;return;
+    }
+    else if(matOp==='trans')res=matA[0].map((_,j)=>matA.map(row=>row[j]));
+    else if(matOp==='inv'){
+      const n=matSize,aug=matA.map((row,i)=>[...row,...Array.from({length:n},(_,j)=>i===j?1:0)]);
+      for(let i=0;i<n;i++){const p=aug[i][i];if(p===0){toast('Not invertible','error');return;}for(let j=0;j<2*n;j++)aug[i][j]/=p;for(let k=0;k<n;k++){if(k===i)continue;const f=aug[k][i];for(let j=0;j<2*n;j++)aug[k][j]-=f*aug[i][j];}}
+      res=aug.map(row=>row.slice(n));
+    }
+    if(!res)return;
+    res=res.map(row=>row.map(v=>parseFloat(v.toFixed(4))));
+    document.getElementById('mat-result').innerHTML=`<div style="margin-top:12px"><div class="lbl">Result</div><div style="display:grid;grid-template-columns:repeat(${res[0].length},1fr);gap:4px">${res.flat().map(v=>`<div style="padding:8px;border-radius:8px;text-align:center;font-family:'JetBrains Mono';font-size:.85rem;background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.2);color:#00e676">${v}</div>`).join('')}</div></div>`;
+    addHistory('Matrix',`${matOp.toUpperCase()}(A)`,JSON.stringify(res[0]));
+  }catch(e){toast('Operation failed','error');}
+}
+
+// ============================================================
+// STATISTICS
+// ============================================================
+function renderStatistics(){
+  return `<div class="panel-inner center" style="height:100%">
+  <div class="glass-card" style="max-width:500px;margin:0 auto;width:100%">
+    <div style="font-family:Orbitron;font-size:.8rem;color:#ff9800;margin-bottom:14px;letter-spacing:.1em">STATISTICS CALCULATOR</div>
+    <div class="space-y">
+      <div><span class="lbl">Data values (comma or space separated)</span>
+        <textarea id="stat-data" class="inp" rows="3" style="resize:none;font-family:'JetBrains Mono';line-height:1.6" placeholder="4, 7, 13, 2, 1, 7, 5, 8, 9, 3">4, 7, 13, 2, 1, 7, 5, 8, 9, 3</textarea>
+      </div>
+      <button class="btn btn-eq" style="width:100%;height:44px" onclick="calcStats()">ANALYZE</button>
+    </div>
+    <div id="stat-result"></div>
+  </div></div>`;
+}
+
+function calcStats(){
+  const raw=document.getElementById('stat-data').value;
+  const nums=raw.split(/[\s,]+/).map(Number).filter(n=>!isNaN(n)&&n!==null);
+  if(!nums.length){toast('Enter valid numbers','error');return;}
+  const s=[...nums].sort((a,b)=>a-b),n=nums.length;
+  const mean=nums.reduce((a,b)=>a+b,0)/n;
+  const median=n%2===0?(s[n/2-1]+s[n/2])/2:s[Math.floor(n/2)];
+  const freq={};nums.forEach(v=>freq[v]=(freq[v]||0)+1);
+  const mxF=Math.max(...Object.values(freq));
+  const mode=Object.keys(freq).filter(k=>freq[k]===mxF).join(', ');
+  const variance=nums.reduce((a,b)=>a+(b-mean)**2,0)/n;
+  const std=Math.sqrt(variance);
+  const items=[['Count (n)',n,'#2979ff'],['Mean (μ)',mean.toFixed(4),'#00e5ff'],['Median',median.toFixed(4),'#b429f9'],['Mode',mode,'#ff9800'],['Std Dev (σ)',std.toFixed(4),'#00e676'],['Variance (σ²)',variance.toFixed(4),'#f50057'],['Min',s[0],'#2979ff'],['Max',s[n-1],'#ff9800'],['Range',(s[n-1]-s[0]).toFixed(4),'#00e5ff'],['Sum (Σ)',nums.reduce((a,b)=>a+b,0),'#b429f9']];
+  document.getElementById('stat-result').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:14px">${items.map(([l,v,c])=>`<div style="padding:10px;border-radius:10px;background:${c}10;border:1px solid ${c}20"><div style="font-size:.7rem;color:${c}80;margin-bottom:2px">${l}</div><div style="font-family:'JetBrains Mono';color:${c};font-weight:700">${v}</div></div>`).join('')}</div>`;
+  addHistory('Statistics',`${n} values`,`Mean=${mean.toFixed(2)}, SD=${std.toFixed(2)}`);
+}
+
+// ============================================================
+// TAX
+// ============================================================
+function renderTax(){
+  return `<div class="panel-inner center" style="height:100%">
+  <div class="glass-card max-w-sm mx-auto" style="width:100%">
+    <div style="font-family:Orbitron;font-size:.8rem;color:#f50057;margin-bottom:14px;letter-spacing:.1em">TAX & DISCOUNT CALCULATOR</div>
+    <div class="space-y">
+      <div><span class="lbl">Original Price</span><input type="number" id="tax-p" class="inp" placeholder="1000"/></div>
+      <div><span class="lbl">Discount (%)</span><input type="number" id="tax-d" class="inp" placeholder="10"/></div>
+      <div>
+        <span class="lbl">Tax Rate (%)</span>
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          ${['5','12','18','28'].map(r=>`<button class="btn btn-sci" style="flex:1;height:32px;font-size:.75rem" onclick="setTaxRate('${r}')">${r}%</button>`).join('')}
+        </div>
+        <input type="number" id="tax-r" class="inp" placeholder="18"/>
+      </div>
+      <button class="btn btn-eq" style="width:100%;height:44px" onclick="calcTax()">CALCULATE</button>
+    </div>
+    <div id="tax-result"></div>
+  </div></div>`;
+}
+
+function setTaxRate(r){const el=document.getElementById('tax-r');if(el)el.value=r;}
+function calcTax(){
+  const p=parseFloat(document.getElementById('tax-p').value),d=parseFloat(document.getElementById('tax-d').value)||0,t=parseFloat(document.getElementById('tax-r').value)||0;
+  if(!p){toast('Enter price','error');return;}
+  const after=p-p*d/100,taxAmt=after*t/100,final=after+taxAmt;
+  const fmt=v=>v.toFixed(2);
+  document.getElementById('tax-result').innerHTML=`<div style="margin-top:12px;display:flex;flex-direction:column;gap:5px">
+    ${[['Original Price',`₹${fmt(p)}`,'#fff'],['Discount',`-₹${fmt(p*d/100)}`,'#f50057'],['After Discount',`₹${fmt(after)}`,'#ff9800'],['Tax Amount',`+₹${fmt(taxAmt)}`,'#b429f9'],['Final Price',`₹${fmt(final)}`,'#00e676']].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:8px 12px;border-radius:10px;background:${c}08;border:1px solid ${c}18"><span style="font-size:.75rem;color:rgba(168,196,255,.5)">${l}</span><span style="font-family:'JetBrains Mono';font-weight:700;color:${c}">${v}</span></div>`).join('')}
+  </div>`;
+  addHistory('Tax',`₹${p} -${d}% +${t}%`,`₹${fmt(final)}`);
+}
+
+// ============================================================
+// UNIT PRICE
+// ============================================================
+let upProducts=[{id:1,name:'Product A',price:'120',qty:'500',unit:'g'},{id:2,name:'Product B',price:'200',qty:'1',unit:'kg'}];
+
+function renderUnitPrice(){
+  return `<div class="panel-inner center" style="height:100%">
+  <div class="glass-card" style="max-width:580px;margin:0 auto;width:100%">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <span style="font-family:Orbitron;font-size:.8rem;color:#2979ff;letter-spacing:.1em">UNIT PRICE CALCULATOR</span>
+      <button class="btn btn-op" style="padding:4px 12px;height:auto;font-size:.75rem" onclick="addUP()">+ Add Product</button>
+    </div>
+    ${upProducts.map(p=>`<div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+      <input value="${p.name}" onchange="updateUP(${p.id},'name',this.value)" class="inp" style="flex:1;min-width:70px" placeholder="Name"/>
+      <input type="number" value="${p.price}" onchange="updateUP(${p.id},'price',this.value)" class="inp" style="width:80px" placeholder="Price"/>
+      <input type="number" value="${p.qty}" onchange="updateUP(${p.id},'qty',this.value)" class="inp" style="width:70px" placeholder="Qty"/>
+      <select onchange="updateUP(${p.id},'unit',this.value)" class="sel" style="width:64px">
+        ${['g','kg','ml','L','oz','lb','unit'].map(u=>`<option${u===p.unit?' selected':''}>${u}</option>`).join('')}
+      </select>
+      ${upProducts.length>2?`<button onclick="removeUP(${p.id})" style="background:transparent;border:none;cursor:pointer;color:rgba(245,0,87,.5);font-size:18px">×</button>`:''}
+    </div>`).join('')}
+    <button class="btn btn-eq" style="width:100%;height:44px;margin-top:8px" onclick="calcUP()">COMPARE PRICES</button>
+    <div id="up-result"></div>
+  </div></div>`;
+}
+
+function addUP(){upProducts.push({id:Date.now(),name:`Product ${upProducts.length+1}`,price:'',qty:'',unit:'g'});renderContent();}
+function removeUP(id){upProducts=upProducts.filter(p=>p.id!==id);renderContent();}
+function updateUP(id,f,v){upProducts=upProducts.map(p=>p.id===id?{...p,[f]:v}:p);}
+function calcUP(){
+  const rs=upProducts.map(p=>{const pr=parseFloat(p.price),q=parseFloat(p.qty),up=pr&&q?pr/q:null;return{...p,unitPrice:up};}).filter(p=>p.unitPrice);
+  if(rs.length<2){toast('Add at least 2 valid products','error');return;}
+  rs.sort((a,b)=>a.unitPrice-b.unitPrice);
+  const bestId=rs[0].id;
+  document.getElementById('up-result').innerHTML=`<div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">${rs.map((p,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:12px;background:${p.id===bestId?'rgba(0,230,118,.1)':'rgba(41,121,255,.05)'};border:1px solid ${p.id===bestId?'rgba(0,230,118,.3)':'rgba(41,121,255,.12)'}"><div><div style="font-weight:600;color:${p.id===bestId?'#00e676':'#a8c4ff'}">${p.name}${p.id===bestId?' ★ BEST VALUE':''}</div><div style="font-size:.7rem;color:rgba(168,196,255,.4)">₹${p.price} / ${p.qty}${p.unit}</div></div><div style="font-family:'JetBrains Mono';font-weight:700;color:${p.id===bestId?'#00e676':'#a8c4ff'}">₹${p.unitPrice.toFixed(4)}/${p.unit}</div></div>`).join('')}</div>`;
+}
+
+// ============================================================
+// CONVERTERS (Generic)
+// ============================================================
+const UNIT_DEFS = {
+  length:{units:[{id:'m',l:'Meter'},{id:'km',l:'Kilometer'},{id:'cm',l:'Centimeter'},{id:'mm',l:'Millimeter'},{id:'mi',l:'Mile'},{id:'yd',l:'Yard'},{id:'ft',l:'Foot'},{id:'in',l:'Inch'},{id:'nmi',l:'Nautical Mile'},{id:'nm',l:'Nanometer'}],
+    base:{m:1,km:1000,cm:.01,mm:.001,mi:1609.344,yd:.9144,ft:.3048,in:.0254,nmi:1852,nm:1e-9},title:'Length',color:'#2979ff'},
+  weight:{units:[{id:'kg',l:'Kilogram'},{id:'g',l:'Gram'},{id:'mg',l:'Milligram'},{id:'lb',l:'Pound'},{id:'oz',l:'Ounce'},{id:'t',l:'Metric Ton'},{id:'st',l:'Stone'}],
+    base:{kg:1,g:.001,mg:1e-6,lb:.453592,oz:.0283495,t:1000,st:6.35029},title:'Weight & Mass',color:'#b429f9'},
+  volume:{units:[{id:'L',l:'Liter'},{id:'mL',l:'Milliliter'},{id:'m3',l:'Cubic Meter'},{id:'gal',l:'Gallon (US)'},{id:'qt',l:'Quart'},{id:'pt',l:'Pint'},{id:'cup',l:'Cup'},{id:'floz',l:'Fl Oz'}],
+    base:{L:1,mL:.001,m3:1000,gal:3.78541,qt:.946353,pt:.473176,cup:.236588,floz:.0295735},title:'Volume',color:'#00e5ff'},
+  area:{units:[{id:'m2',l:'Square Meter'},{id:'km2',l:'Square Km'},{id:'cm2',l:'Square Cm'},{id:'ft2',l:'Square Foot'},{id:'in2',l:'Square Inch'},{id:'ac',l:'Acre'},{id:'ha',l:'Hectare'},{id:'mi2',l:'Square Mile'}],
+    base:{m2:1,km2:1e6,cm2:1e-4,ft2:.092903,in2:6.4516e-4,ac:4046.86,ha:10000,mi2:2.59e6},title:'Area',color:'#ff9800'},
+  speed:{units:[{id:'ms',l:'m/s'},{id:'kmh',l:'km/h'},{id:'mph',l:'mph'},{id:'knot',l:'Knot'},{id:'fts',l:'ft/s'},{id:'mach',l:'Mach'}],
+    base:{ms:1,kmh:.277778,mph:.44704,knot:.514444,fts:.3048,mach:340.29},title:'Speed',color:'#00e676'},
+  time:{units:[{id:'s',l:'Second'},{id:'ms',l:'Millisecond'},{id:'min',l:'Minute'},{id:'h',l:'Hour'},{id:'d',l:'Day'},{id:'wk',l:'Week'},{id:'mo',l:'Month'},{id:'yr',l:'Year'}],
+    base:{s:1,ms:.001,min:60,h:3600,d:86400,wk:604800,mo:2629800,yr:31557600},title:'Time',color:'#2979ff'},
+  energy:{units:[{id:'J',l:'Joule'},{id:'kJ',l:'Kilojoule'},{id:'cal',l:'Calorie'},{id:'kcal',l:'Kilocalorie'},{id:'Wh',l:'Watt-hour'},{id:'kWh',l:'kWh'},{id:'BTU',l:'BTU'}],
+    base:{J:1,kJ:1000,cal:4.184,kcal:4184,Wh:3600,kWh:3.6e6,BTU:1055.06},title:'Energy',color:'#ff9800'},
+  power:{units:[{id:'W',l:'Watt'},{id:'kW',l:'Kilowatt'},{id:'MW',l:'Megawatt'},{id:'hp',l:'Horsepower'},{id:'BTU_h',l:'BTU/hr'}],
+    base:{W:1,kW:1000,MW:1e6,hp:745.7,BTU_h:.29307},title:'Power',color:'#b429f9'},
+  data:{units:[{id:'b',l:'Bit'},{id:'B',l:'Byte'},{id:'KB',l:'Kilobyte'},{id:'MB',l:'Megabyte'},{id:'GB',l:'Gigabyte'},{id:'TB',l:'Terabyte'},{id:'Mb',l:'Megabit'},{id:'Gb',l:'Gigabit'}],
+    base:{b:.125,B:1,KB:1024,MB:1048576,GB:1073741824,TB:1.1e12,Mb:131072,Gb:134217728},title:'Data Storage',color:'#00e5ff'},
+  pressure:{units:[{id:'Pa',l:'Pascal'},{id:'kPa',l:'Kilopascal'},{id:'bar',l:'Bar'},{id:'atm',l:'Atmosphere'},{id:'psi',l:'PSI'},{id:'mmHg',l:'mmHg'}],
+    base:{Pa:1,kPa:1000,bar:1e5,atm:101325,psi:6894.76,mmHg:133.322},title:'Pressure',color:'#f50057'},
+  angle:{units:[{id:'deg',l:'Degree'},{id:'rad',l:'Radian'},{id:'grad',l:'Gradian'},{id:'turn',l:'Turn'},{id:'arcmin',l:'Arcminute'},{id:'arcsec',l:'Arcsecond'}],
+    base:{deg:1,rad:180/Math.PI,grad:.9,turn:360,arcmin:1/60,arcsec:1/3600},title:'Angle',color:'#00e676'},
+};
+
+let convState={};
+
+function getConvState(mode){
+  if(!convState[mode]){const d=UNIT_DEFS[mode];convState[mode]={from:d.units[0].id,to:d.units[1].id,fromVal:'',toVal:''};}
+  return convState[mode];
+}
+
+function renderGenericConverter(mode){
+  const d=UNIT_DEFS[mode], s=getConvState(mode);
+  return `<div class="panel-inner center" style="height:100%">
+  <div class="glass-card" style="max-width:500px;margin:0 auto;width:100%">
+    <div style="font-family:Orbitron;font-size:.8rem;color:${d.color};margin-bottom:20px;letter-spacing:.1em">${d.title.toUpperCase()} CONVERTER</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="flex:1">
+        <select id="conv-from" class="sel" onchange="convSetFrom(this.value,'${mode}')">
+          ${d.units.map(u=>`<option value="${u.id}"${u.id===s.from?' selected':''}>${u.l}</option>`).join('')}
+        </select>
+        <input type="number" id="conv-fv" class="inp" style="margin-top:8px" value="${s.fromVal}" placeholder="Enter value" oninput="convCalc(this.value,'${mode}')"/>
+      </div>
+      <button onclick="convSwap('${mode}')" class="swap-btn" style="background:${d.color}15;border-color:${d.color}30;color:${d.color}">⇄</button>
+      <div style="flex:1">
+        <select id="conv-to" class="sel" onchange="convSetTo(this.value,'${mode}')">
+          ${d.units.map(u=>`<option value="${u.id}"${u.id===s.to?' selected':''}>${u.l}</option>`).join('')}
+        </select>
+        <div style="position:relative;margin-top:8px">
+          <input type="number" id="conv-tv" class="inp" readonly value="${s.toVal}" placeholder="Result" style="color:${d.color}"/>
+          <button onclick="copyText(document.getElementById('conv-tv').value);toast('Copied!')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:none;cursor:pointer;font-size:14px;color:${d.color}60">⎘</button>
+        </div>
+      </div>
+    </div>
+    ${s.fromVal&&s.toVal?`<div style="margin-top:14px;padding:10px;border-radius:10px;text-align:center;background:${d.color}08;border:1px solid ${d.color}20"><span style="font-family:'JetBrains Mono';font-size:.9rem;color:${d.color}">${s.fromVal} ${d.units.find(u=>u.id===s.from)?.l} = ${s.toVal} ${d.units.find(u=>u.id===s.to)?.l}</span></div>`:''}
+  </div></div>`;
+}
+
+function convCalc(val,mode){
+  const d=UNIT_DEFS[mode],s=getConvState(mode);
+  s.fromVal=val;
+  if(!val||isNaN(val)){s.toVal='';const el=document.getElementById('conv-tv');if(el)el.value='';return;}
+  const r=parseFloat(val)*d.base[s.from]/d.base[s.to];
+  s.toVal=parseFloat(r.toFixed(8)).toString();
+  const el=document.getElementById('conv-tv');if(el)el.value=s.toVal;
+  addHistory(d.title,`${val} ${s.from}`,`${s.toVal} ${s.to}`);
+}
+function convSetFrom(v,mode){getConvState(mode).from=v;const s=getConvState(mode);convCalc(s.fromVal,mode);}
+function convSetTo(v,mode){getConvState(mode).to=v;const s=getConvState(mode);convCalc(s.fromVal,mode);}
+function convSwap(mode){const s=getConvState(mode);[s.from,s.to]=[s.to,s.from];[s.fromVal,s.toVal]=[s.toVal,s.fromVal];renderContent();}
+
+// ============================================================
+// TEMPERATURE
+// ============================================================
+let tempState={from:'C',to:'F',fromVal:'',toVal:''};
+
+function renderTemperature(){
+  const units=[{id:'C',l:'Celsius (°C)'},{id:'F',l:'Fahrenheit (°F)'},{id:'K',l:'Kelvin (K)'},{id:'R',l:'Rankine (°R)'}];
+  const c='#f50057';
+  return `<div class="panel-inner center" style="height:100%">
+  <div class="glass-card" style="max-width:500px;margin:0 auto;width:100%">
+    <div style="font-family:Orbitron;font-size:.8rem;color:${c};margin-bottom:20px;letter-spacing:.1em">TEMPERATURE CONVERTER</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="flex:1">
+        <select class="sel" onchange="tempSetFrom(this.value)">
+          ${units.map(u=>`<option value="${u.id}"${u.id===tempState.from?' selected':''}>${u.l}</option>`).join('')}
+        </select>
+        <input type="number" class="inp" style="margin-top:8px" value="${tempState.fromVal}" placeholder="Enter value" oninput="tempCalc(this.value)"/>
+      </div>
+      <button onclick="tempSwap()" class="swap-btn" style="background:${c}15;border-color:${c}30;color:${c}">⇄</button>
+      <div style="flex:1">
+        <select class="sel" onchange="tempSetTo(this.value)">
+          ${units.map(u=>`<option value="${u.id}"${u.id===tempState.to?' selected':''}>${u.l}</option>`).join('')}
+        </select>
+        <div style="position:relative;margin-top:8px">
+          <input type="number" id="temp-tv" class="inp" readonly value="${tempState.toVal}" placeholder="Result" style="color:${c}"/>
+          <button onclick="copyText(document.getElementById('temp-tv').value);toast('Copied!')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:none;cursor:pointer;font-size:14px;color:${c}60">⎘</button>
+        </div>
+      </div>
+    </div>
+    ${tempState.fromVal&&tempState.toVal?`<div style="margin-top:14px;padding:10px;border-radius:10px;text-align:center;background:${c}08;border:1px solid ${c}20"><span style="font-family:'JetBrains Mono';color:${c}">${tempState.fromVal}°${tempState.from} = ${tempState.toVal}°${tempState.to}</span></div>`:''}
+    <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:4px;font-size:.65rem">
+      <div style="color:rgba(168,196,255,.3)">Point</div>${units.map(u=>`<div style="color:rgba(168,196,255,.4);text-align:center;font-family:'JetBrains Mono'">${u.id}</div>`).join('')}
+      ${[['Abs Zero',-273.15,-459.67,0,0],['Freeze',0,32,273.15,491.67],['Body',37,98.6,310.15,558.27],['Boil',100,212,373.15,671.67]].map(([n,...vs])=>`<div style="color:rgba(168,196,255,.3);padding:3px 0">${n}</div>${vs.map(v=>`<div style="color:rgba(168,196,255,.45);text-align:center;font-family:'JetBrains Mono';padding:3px 0">${v}</div>`).join('')}`).join('')}
+    </div>
+  </div></div>`;
+}
+
+function tempConvert(v,from,to){
+  let c; if(from==='C')c=v;else if(from==='F')c=(v-32)*5/9;else if(from==='K')c=v-273.15;else c=(v-491.67)*5/9;
+  if(to==='C')return c;if(to==='F')return c*9/5+32;if(to==='K')return c+273.15;return(c+273.15)*9/5;
+}
+function tempCalc(v){tempState.fromVal=v;if(!v||isNaN(v)){tempState.toVal='';const el=document.getElementById('temp-tv');if(el)el.value='';return;}const r=tempConvert(parseFloat(v),tempState.from,tempState.to);tempState.toVal=parseFloat(r.toFixed(4)).toString();const el=document.getElementById('temp-tv');if(el)el.value=tempState.toVal;addHistory('Temperature',`${v}°${tempState.from}`,`${tempState.toVal}°${tempState.to}`);}
+function tempSetFrom(v){tempState.from=v;tempCalc(tempState.fromVal);}
+function tempSetTo(v){tempState.to=v;tempCalc(tempState.fromVal);}
+function tempSwap(){[tempState.from,tempState.to]=[tempState.to,tempState.from];[tempState.fromVal,tempState.toVal]=[tempState.toVal,tempState.fromVal];renderContent();}
+
+// ============================================================
+// COLOR CONVERTER
+// ============================================================
+let colorState={hex:'#b429f9'};
+
+function renderColor(){
+  const hex=colorState.hex;
+  const rgb=hexToRgb(hex)||{r:180,g:41,b:249};
+  const hsl=rgbToHsl(rgb);
+  return `<div class="panel-inner center" style="height:100%">
+  <div class="glass-card max-w-sm mx-auto" style="width:100%">
+    <div style="font-family:Orbitron;font-size:.8rem;color:#ff9800;margin-bottom:14px;letter-spacing:.1em">COLOR CONVERTER</div>
+    <div style="height:72px;border-radius:12px;margin-bottom:14px;background:${hex};box-shadow:0 0 30px ${hex}60;transition:all .3s;position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.12),transparent)"></div>
+    </div>
+    <div class="space-y">
+      <div><span class="lbl">HEX</span>
+        <div style="display:flex;gap:8px">
+          <input type="color" value="${hex}" oninput="colorFromHex(this.value)" style="width:40px;height:40px;border-radius:10px;border:none;cursor:pointer;background:transparent;padding:0"/>
+          <input type="text" value="${hex}" oninput="colorFromHex(this.value)" class="inp" style="flex:1;text-transform:uppercase" maxlength="7" id="hex-input"/>
+          <button onclick="copyText('${hex}')" class="btn" style="padding:0 12px">⎘</button>
+        </div>
+      </div>
+      <div><span class="lbl">RGB</span>
+        <div style="display:flex;gap:6px">
+          ${['r','g','b'].map((ch,i)=>`<input type="number" value="${rgb[ch]}" oninput="colorFromRgb('${ch}',this.value)" class="inp" style="flex:1;text-align:center;color:${['#ff6060','#60ff60','#6060ff'][i]}" min="0" max="255"/>`).join('')}
+          <button onclick="copyText('rgb(${rgb.r},${rgb.g},${rgb.b})')" class="btn" style="padding:0 10px">⎘</button>
+        </div>
+      </div>
+      <div><span class="lbl">HSL</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="flex:1;padding:8px 12px;border-radius:10px;background:rgba(255,152,0,.08);border:1px solid rgba(255,152,0,.2);font-family:'JetBrains Mono';font-size:.8rem;color:#ff9800;text-align:center">H:${hsl.h}° S:${hsl.s}% L:${hsl.l}%</div>
+          <button onclick="copyText('hsl(${hsl.h},${hsl.s}%,${hsl.l}%)')" class="btn" style="padding:0 10px;height:40px">⎘</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:4px">
+        ${['#f50057','#b429f9','#2979ff','#00e5ff','#00e676','#ff9800','#ffffff','#000000'].map(c=>`<button onclick="colorFromHex('${c}')" style="aspect-ratio:1;border-radius:8px;background:${c};border:2px solid ${hex===c?'#fff':'transparent'};cursor:pointer;transition:all .15s;box-shadow:${hex===c?`0 0 8px ${c}80`:'none'}" onmouseenter="this.style.transform='scale(1.15)'" onmouseleave="this.style.transform='scale(1)'"></button>`).join('')}
+      </div>
+    </div>
+  </div></div>`;
+}
+
+function hexToRgb(h){const r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h);return r?{r:parseInt(r[1],16),g:parseInt(r[2],16),b:parseInt(r[3],16)}:null;}
+function rgbToHsl({r,g,b}){r/=255;g/=255;b/=255;const max=Math.max(r,g,b),min=Math.min(r,g,b),l=(max+min)/2;if(max===min)return{h:0,s:0,l:Math.round(l*100)};const d=max-min,s=l>.5?d/(2-max-min):d/(max+min);let h=max===r?((g-b)/d+(g<b?6:0))/6:max===g?((b-r)/d+2)/6:((r-g)/d+4)/6;return{h:Math.round(h*360),s:Math.round(s*100),l:Math.round(l*100)};}
+function colorFromHex(v){colorState.hex=v.startsWith('#')?v:'#'+v;if(/^#[0-9A-Fa-f]{6}$/.test(colorState.hex))renderContent();}
+function colorFromRgb(ch,v){const rgb=hexToRgb(colorState.hex)||{r:0,g:0,b:0};rgb[ch]=Math.min(255,Math.max(0,parseInt(v)||0));colorState.hex='#'+[rgb.r,rgb.g,rgb.b].map(x=>x.toString(16).padStart(2,'0')).join('');renderContent();}
+
+// ============================================================
+// BASE CONVERTER
+// ============================================================
+let baseState={val:'255',from:'10'};
+
+function renderBase(){
+  const v=baseState.val,from=baseState.from;
+  let dec; try{dec=parseInt(v,parseInt(from));if(isNaN(dec))dec=null;}catch{dec=null;}
+  const res={bin:dec!==null?dec.toString(2):'Error',oct:dec!==null?dec.toString(8):'Error',dec:dec!==null?dec.toString(10):'Error',hex:dec!==null?dec.toString(16).toUpperCase():'Error'};
+  return `<div class="panel-inner center" style="height:100%">
+  <div class="glass-card max-w-sm mx-auto" style="width:100%">
+    <div style="font-family:Orbitron;font-size:.8rem;color:#2979ff;margin-bottom:14px;letter-spacing:.1em">NUMBER BASE CONVERTER</div>
+    <div class="space-y">
+      <div><span class="lbl">Input Value</span><input type="text" value="${v}" oninput="baseState.val=this.value.toUpperCase();renderContent()" class="inp" style="text-transform:uppercase"/></div>
+      <div><span class="lbl">From Base</span>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px">
+          ${[['2','BIN'],['8','OCT'],['10','DEC'],['16','HEX']].map(([base,lbl])=>`<button class="btn${base===from?' btn-sci':''}" style="height:34px;font-size:.78rem" onclick="baseState.from='${base}';renderContent()">${lbl}</button>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:14px;display:flex;flex-direction:column;gap:6px">
+      ${[['Binary (Base 2)',res.bin,'#b429f9'],['Octal (Base 8)',res.oct,'#00e5ff'],['Decimal (Base 10)',res.dec,'#2979ff'],['Hexadecimal (Base 16)',res.hex,'#00e676']].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:10px;background:${c}08;border:1px solid ${c}18"><span style="font-size:.75rem;color:rgba(168,196,255,.5)">${l}</span><div style="display:flex;gap:6px;align-items:center"><span style="font-family:'JetBrains Mono';font-weight:700;color:${c}">${v}</span><button onclick="copyText('${v}')" style="background:transparent;border:none;cursor:pointer;color:${c}50;font-size:13px">⎘</button></div></div>`).join('')}
+    </div>
+  </div></div>`;
+}
+
+// ============================================================
+// ROMAN NUMERALS
+// ============================================================
+let romanState={dec:'',roman:'',mode:'toRoman'};
+
+function toRoman(n){if(n<1||n>3999)return 'Out of range (1-3999)';const vals=[1000,900,500,400,100,90,50,40,10,9,5,4,1],syms=['M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];let r='';vals.forEach((v,i)=>{while(n>=v){r+=syms[i];n-=v;}});return r;}
+function fromRoman(s){const map={I:1,V:5,X:10,L:50,C:100,D:500,M:1000};let r=0;for(let i=0;i<s.length;i++){const c=map[s[i]],nx=map[s[i+1]];r+=nx&&c<nx?-c:c;}return r;}
+
+function renderRoman(){
+  return `<div class="panel-inner center" style="height:100%">
+  <div class="glass-card max-w-sm mx-auto" style="width:100%">
+    <div style="font-family:Orbitron;font-size:.8rem;color:#b429f9;margin-bottom:14px;letter-spacing:.1em">ROMAN NUMERALS</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      ${[['toRoman','Dec → Roman'],['fromRoman','Roman → Dec']].map(([m,l])=>`<button class="btn${m===romanState.mode?' btn-eq':''}" style="flex:1;height:36px;font-size:.72rem" onclick="setRomanMode('${m}')">${l}</button>`).join('')}
+    </div>
+    <div class="space-y">
+      <div><span class="lbl">Decimal (1–3999)</span><input type="number" id="rom-d" value="${romanState.dec}" oninput="romanFromDec(this.value)" class="inp" min="1" max="3999"/></div>
+      <div style="text-align:center;font-size:1.2rem;color:rgba(180,41,249,.4)">⇅</div>
+      <div><span class="lbl">Roman Numeral</span>
+        <div style="position:relative">
+          <input type="text" id="rom-r" value="${romanState.roman}" oninput="romanFromRom(this.value)" class="inp" style="text-transform:uppercase;letter-spacing:.1em;font-size:1.1rem;color:#d580ff"/>
+          ${romanState.roman?`<button onclick="copyText('${romanState.roman}')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:none;cursor:pointer;color:rgba(180,41,249,.4);font-size:14px">⎘</button>`:''}
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px">
+      ${[['I','1'],['V','5'],['X','10'],['L','50'],['C','100'],['D','500'],['M','1000'],['CM','900']].map(([r,d])=>`<div style="text-align:center;padding:6px;border-radius:8px;background:rgba(180,41,249,.06);border:1px solid rgba(180,41,249,.12)"><div style="font-family:Orbitron;font-weight:700;color:#d580ff;font-size:.8rem">${r}</div><div style="color:rgba(168,196,255,.4);font-size:.65rem">${d}</div></div>`).join('')}
+    </div>
+  </div></div>`;
+}
+
+function setRomanMode(m){romanState.mode=m;renderContent();}
+function romanFromDec(v){romanState.dec=v;if(v&&!isNaN(v)){romanState.roman=toRoman(parseInt(v));}else romanState.roman='';const el=document.getElementById('rom-r');if(el)el.value=romanState.roman;}
+function romanFromRom(v){romanState.roman=v.toUpperCase();const r=fromRoman(v.toUpperCase());romanState.dec=r>0?r.toString():'';const el=document.getElementById('rom-d');if(el)el.value=romanState.dec;}
+
+// ============================================================
+// INTERNET SPEED
+// ============================================================
+let ispState={val:'',unit:'Mbps'};
+
+function renderInternet(){
+  const mbpsRates={'bps':1e-6,'Kbps':.001,'Mbps':1,'Gbps':1000,'MBps':8,'KBps':.008,'GBps':8000};
+  const mbps=parseFloat(ispState.val)*(mbpsRates[ispState.unit]||1);
+  const dt=sz=>{const s=(sz*8*1024)/mbps;if(s<60)return s.toFixed(0)+'s';if(s<3600)return(s/60).toFixed(1)+' min';return(s/3600).toFixed(1)+' hr';};
+  return `<div class="panel-inner center" style="height:100%">
+  <div class="glass-card max-w-sm mx-auto" style="width:100%">
+    <div style="font-family:Orbitron;font-size:.8rem;color:#00e676;margin-bottom:14px;letter-spacing:.1em">INTERNET SPEED</div>
+    <div class="space-y">
+      <input type="number" value="${ispState.val}" oninput="ispState.val=this.value;renderContent()" class="inp" placeholder="Enter speed"/>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px">
+        ${Object.keys(mbpsRates).map(u=>`<button class="btn btn-sci${u===ispState.unit?' btn-act':''}" style="height:32px;font-size:.7rem" onclick="ispState.unit='${u}';renderContent()">${u}</button>`).join('')}
+      </div>
+    </div>
+    ${ispState.val&&mbps>0?`
+    <div style="margin-top:14px;text-align:center;padding:14px;border-radius:12px;background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.25);margin-bottom:10px">
+      <div style="font-size:2rem;font-family:'JetBrains Mono';font-weight:700;color:#00e676">${mbps.toFixed(3)} Mbps</div>
+      <div style="font-size:.75rem;color:rgba(168,196,255,.4);margin-top:2px">${(mbps/8).toFixed(3)} MB/s</div>
+    </div>
+    <div style="font-size:.65rem;font-family:Orbitron;color:rgba(168,196,255,.3);letter-spacing:.1em;margin-bottom:6px">DOWNLOAD TIMES</div>
+    ${[['1 GB file',1],['HD 1hr (2.5GB)',2.5],['4K 1hr (7GB)',7],['Blu-ray (50GB)',50]].map(([l,s])=>`<div style="display:flex;justify-content:space-between;padding:8px 12px;border-radius:10px;background:rgba(0,230,118,.05);border:1px solid rgba(0,230,118,.1);margin-bottom:5px"><span style="font-size:.75rem;color:rgba(168,196,255,.5)">${l}</span><span style="font-family:'JetBrains Mono';color:#00e676;font-weight:700">${dt(s)}</span></div>`).join('')}
+    `:''}
+  </div></div>`;
+}
+
+// ============================================================
+// SCREEN RESOLUTION
+// ============================================================
+let resState={w:'1920',h:'1080',dpi:'96',screen:'24'};
+
+function renderResolution(){
+  const {w,h,dpi,screen}=resState;
+  const total=parseInt(w)*parseInt(h);
+  const wIn=(parseInt(w)/parseFloat(dpi)).toFixed(2),hIn=(parseInt(h)/parseFloat(dpi)).toFixed(2);
+  const gcd=(a,b)=>b?gcd(b,a%b):a; const d=gcd(parseInt(w),parseInt(h));
+  const ar=`${parseInt(w)/d}:${parseInt(h)/d}`;
+  const ppi=(Math.sqrt(parseInt(w)**2+parseInt(h)**2)/parseFloat(screen)).toFixed(0);
+  return `<div class="panel-inner center" style="height:100%">
+  <div class="glass-card max-w-sm mx-auto" style="width:100%">
+    <div style="font-family:Orbitron;font-size:.8rem;color:#00e5ff;margin-bottom:14px;letter-spacing:.1em">SCREEN RESOLUTION</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div><span class="lbl">Width (px)</span><input type="number" value="${w}" oninput="resState.w=this.value;renderContent()" class="inp"/></div>
+      <div><span class="lbl">Height (px)</span><input type="number" value="${h}" oninput="resState.h=this.value;renderContent()" class="inp"/></div>
+      <div><span class="lbl">DPI</span><input type="number" value="${dpi}" oninput="resState.dpi=this.value;renderContent()" class="inp"/></div>
+      <div><span class="lbl">Screen Size (in)</span><input type="number" value="${screen}" oninput="resState.screen=this.value;renderContent()" class="inp"/></div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px">
+      ${[['HD','1280','720'],['FHD','1920','1080'],['2K','2560','1440'],['4K','3840','2160']].map(([l,pw,ph])=>`<button class="btn btn-sci" style="padding:4px 10px;height:auto;font-size:.7rem" onclick="resState.w='${pw}';resState.h='${ph}';renderContent()">${l}</button>`).join('')}
+    </div>
+    ${[['Total Pixels',total.toLocaleString()+' px','#00e5ff'],['Aspect Ratio',ar,'#2979ff'],['Physical Size',`${wIn}" × ${hIn}"`,'#b429f9'],['Actual PPI',ppi+' PPI','#00e676'],['Megapixels',(total/1e6).toFixed(2)+' MP','#ff9800']].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:8px 12px;border-radius:10px;background:${c}08;border:1px solid ${c}18;margin-bottom:5px"><span style="font-size:.75rem;color:rgba(168,196,255,.5)">${l}</span><span style="font-family:'JetBrains Mono';font-weight:700;color:${c}">${v}</span></div>`).join('')}
+  </div></div>`;
+}
+
+// ============================================================
+// TIMEZONE
+// ============================================================
+let tzTime=new Date().toISOString().slice(0,16);
+const TZ_ZONES=[{id:'UTC',l:'UTC',tz:'UTC'},{id:'NY',l:'New York (EST)',tz:'America/New_York'},{id:'LA',l:'Los Angeles (PST)',tz:'America/Los_Angeles'},{id:'LN',l:'London (GMT)',tz:'Europe/London'},{id:'PA',l:'Paris (CET)',tz:'Europe/Paris'},{id:'IN',l:'India (IST)',tz:'Asia/Kolkata'},{id:'CN',l:'China (CST)',tz:'Asia/Shanghai'},{id:'JP',l:'Tokyo (JST)',tz:'Asia/Tokyo'},{id:'SY',l:'Sydney',tz:'Australia/Sydney'},{id:'DU',l:'Dubai (GST)',tz:'Asia/Dubai'},{id:'SG',l:'Singapore',tz:'Asia/Singapore'},{id:'BR',l:'São Paulo',tz:'America/Sao_Paulo'}];
+
+function renderTimezone(){
+  const fmtTz=tz=>{try{return new Intl.DateTimeFormat('en-US',{timeZone:tz,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,weekday:'short',month:'short',day:'numeric'}).format(new Date(tzTime));}catch{return 'Invalid';}};
+  return `<div class="panel-inner" style="height:100%;overflow-y:auto">
+  <div class="glass-card" style="max-width:480px;margin:0 auto;width:100%">
+    <div style="font-family:Orbitron;font-size:.8rem;color:#ff9800;margin-bottom:14px;letter-spacing:.1em">TIME ZONE CONVERTER</div>
+    <div style="margin-bottom:12px">
+      <span class="lbl">Reference Date & Time</span>
+      <input type="datetime-local" value="${tzTime}" oninput="tzTime=this.value;renderContent()" class="inp"/>
+      <button onclick="tzTime=new Date().toISOString().slice(0,16);renderContent()" class="btn btn-sci" style="margin-top:6px;padding:4px 12px;height:auto;font-size:.75rem">Use Current Time</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px;max-height:380px;overflow-y:auto">
+      ${TZ_ZONES.map(z=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:10px;background:rgba(255,152,0,.05);border:1px solid rgba(255,152,0,.1)"><div><div style="font-size:.7rem;color:rgba(168,196,255,.4)">${z.l}</div><div style="font-family:'JetBrains Mono';color:#ff9800;font-size:.85rem">${fmtTz(z.tz)}</div></div><button onclick="copyText('${fmtTz(z.tz).replace(/'/g,"\\'")}');toast('Copied!')" style="background:transparent;border:none;cursor:pointer;color:rgba(255,152,0,.3);font-size:14px">⎘</button></div>`).join('')}
+    </div>
+  </div></div>`;
+}
+
+// ============================================================
+// CURRENCY
+// ============================================================
+const RATES={USD:1,EUR:0.92,GBP:0.79,JPY:149.5,INR:83.2,CNY:7.24,AUD:1.54,CAD:1.36,CHF:0.89,KRW:1325,SGD:1.34,HKD:7.82,BRL:4.97,MXN:17.2,AED:3.67,SAR:3.75,ZAR:18.9,NZD:1.63,SEK:10.5,NOK:10.7,THB:35.2,MYR:4.72,IDR:15650};
+const FLAGS={USD:'🇺🇸',EUR:'🇪🇺',GBP:'🇬🇧',JPY:'🇯🇵',INR:'🇮🇳',CNY:'🇨🇳',AUD:'🇦🇺',CAD:'🇨🇦',CHF:'🇨🇭',KRW:'🇰🇷',SGD:'🇸🇬',HKD:'🇭🇰',BRL:'🇧🇷',MXN:'🇲🇽',AED:'🇦🇪',SAR:'🇸🇦',ZAR:'🇿🇦',NZD:'🇳🇿',SEK:'🇸🇪',NOK:'🇳🇴',THB:'🇹🇭',MYR:'🇲🇾',IDR:'🇮🇩'};
+let curState={from:'USD',to:'INR',val:'',result:''};
+
+function renderCurrency(){
+  const c='#00e676'; const curs=Object.keys(RATES);
+  return `<div class="panel-inner center" style="height:100%">
+  <div class="glass-card" style="max-width:500px;margin:0 auto;width:100%">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <span style="font-family:Orbitron;font-size:.8rem;color:${c};letter-spacing:.1em">CURRENCY CONVERTER</span>
+      <span class="tag tag-b">Static Rates · 2024</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="flex:1">
+        <select class="sel" onchange="curState.from=this.value;curCalc()">
+          ${curs.map(c=>`<option value="${c}"${c===curState.from?' selected':''}>${FLAGS[c]||''} ${c}</option>`).join('')}
+        </select>
+        <input type="number" value="${curState.val}" oninput="curState.val=this.value;curCalc()" class="inp" style="margin-top:8px" placeholder="Amount"/>
+      </div>
+      <button onclick="curSwap()" class="swap-btn" style="background:rgba(0,230,118,.15);border-color:rgba(0,230,118,.3);color:#00e676">⇄</button>
+      <div style="flex:1">
+        <select class="sel" onchange="curState.to=this.value;curCalc()">
+          ${curs.map(c=>`<option value="${c}"${c===curState.to?' selected':''}>${FLAGS[c]||''} ${c}</option>`).join('')}
+        </select>
+        <div style="position:relative;margin-top:8px">
+          <input type="number" id="cur-res" class="inp" readonly value="${curState.result}" placeholder="Result" style="color:${c}"/>
+          <button onclick="copyText(document.getElementById('cur-res').value);toast('Copied!')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:none;cursor:pointer;font-size:14px;color:${c}50">⎘</button>
+        </div>
+      </div>
+    </div>
+    ${curState.val&&curState.result?`<div style="margin-top:12px;padding:10px;border-radius:10px;text-align:center;background:${c}06;border:1px solid ${c}18"><span style="font-family:'JetBrains Mono';color:${c}">1 ${curState.from} = ${(RATES[curState.to]/RATES[curState.from]).toFixed(4)} ${curState.to}</span></div>`:''}
+  </div></div>`;
+}
+
+function curCalc(){const v=parseFloat(curState.val);if(!v||isNaN(v)){curState.result='';const el=document.getElementById('cur-res');if(el)el.value='';return;}const r=(v/RATES[curState.from])*RATES[curState.to];curState.result=r.toFixed(4);const el=document.getElementById('cur-res');if(el)el.value=curState.result;addHistory('Currency',`${v} ${curState.from}`,`${curState.result} ${curState.to}`);}
+function curSwap(){[curState.from,curState.to]=[curState.to,curState.from];[curState.val,curState.result]=[curState.result,curState.val];renderContent();}
+
+// ============================================================
+// RENDER ENGINE
+// ============================================================
+const RENDERERS = {
+  standard: renderStandard, scientific: renderScientific, graphing: renderGraphing,
+  programmer: renderProgrammer, date: renderDate, bmi: renderBMI, gpa: renderGPA,
+  emi: renderEMI, sip: renderSIP, percentage: renderPercentage, equation: renderEquation,
+  matrix: renderMatrix, statistics: renderStatistics, tax: renderTax, unitprice: renderUnitPrice,
+  currency: renderCurrency, length: ()=>renderGenericConverter('length'), weight: ()=>renderGenericConverter('weight'),
+  temperature: renderTemperature, area: ()=>renderGenericConverter('area'), volume: ()=>renderGenericConverter('volume'),
+  speed: ()=>renderGenericConverter('speed'), time: ()=>renderGenericConverter('time'),
+  energy: ()=>renderGenericConverter('energy'), power: ()=>renderGenericConverter('power'),
+  data: ()=>renderGenericConverter('data'), pressure: ()=>renderGenericConverter('pressure'),
+  angle: ()=>renderGenericConverter('angle'), color: renderColor, base: renderBase,
+  roman: renderRoman, internet: renderInternet, resolution: renderResolution, timezone: renderTimezone,
+};
+
+function renderContent() {
+  const content = document.getElementById('content');
+  const renderer = RENDERERS[state.activeMode];
+  if (renderer) {
+    content.innerHTML = `<div class="panel">${renderer()}</div>`;
+  }
+  // Post-render hooks
+  if (state.activeMode === 'graphing') setTimeout(drawGraph, 100);
+  if (state.activeMode === 'equation') setTimeout(()=>setEqType(eqType), 50);
+  if (state.activeMode === 'bmi') setTimeout(()=>bmiSetUnit(bmiUnit), 50);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  if (state.sidebarCollapsed) {
+    document.getElementById('sidebar').classList.add('collapsed');
+    document.getElementById('collapse-btn').textContent = '▶';
+  }
+  buildNav();
+  updateTopBar();
+  renderContent();
+  updateHistBadge();
+
+  // Window resize for graph
+  window.addEventListener('resize', () => {
+    if (state.activeMode === 'graphing') drawGraph();
+  });
+}
+
+init();
+</script>
+</body>
+</html>
